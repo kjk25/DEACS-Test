@@ -1,0 +1,10 @@
+{
+    "recommendations": [
+        "pioarduino.pioarduino-ide",
+        "platformio.platformio-ide",
+        "spencerwmiles.vscode-task-buttons"
+    ],
+    "unwantedRecommendations": [
+        "ms-vscode.cpptools-extension-pack"
+    ]
+}

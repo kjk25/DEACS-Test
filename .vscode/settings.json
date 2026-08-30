@@ -1,0 +1,17 @@
+{
+  "VsCodeTaskButtons.showCounter": false,
+  "VsCodeTaskButtons.tasks": [
+    {
+      "label": "$(cloud-upload) DEACS Upload",
+      "task": "DEACS: Upload komplett",
+      "alignment": "left",
+      "tooltip": "Firmware und LittleFS bauen und hochladen"
+    },
+    {
+      "label": "$(terminal) DEACS Monitor",
+      "task": "DEACS: Serieller Monitor",
+      "alignment": "left",
+      "tooltip": "Seriellen Monitor mit 115200 Baud öffnen"
+    }
+  ]
+}

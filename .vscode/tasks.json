@@ -1,0 +1,61 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "DEACS: Build",
+      "type": "shell",
+      "command": "pio",
+      "args": ["run"],
+      "problemMatcher": ["$gcc"],
+      "group": "build"
+    },
+    {
+      "label": "DEACS: Clean",
+      "type": "shell",
+      "command": "pio",
+      "args": ["run", "-t", "clean"],
+      "problemMatcher": []
+    },
+    {
+      "label": "DEACS: Upload Firmware",
+      "type": "shell",
+      "command": "pio",
+      "args": ["run", "-t", "upload"],
+      "problemMatcher": []
+    },
+    {
+      "label": "DEACS: Upload LittleFS",
+      "type": "shell",
+      "command": "pio",
+      "args": ["run", "-t", "uploadfs"],
+      "problemMatcher": []
+    },
+    {
+      "label": "DEACS: Upload komplett",
+      "dependsOrder": "sequence",
+      "dependsOn": ["DEACS: Build", "DEACS: Upload Firmware", "DEACS: Upload LittleFS"],
+      "problemMatcher": [],
+      "group": {"kind": "build", "isDefault": true}
+    },
+    {
+      "label": "DEACS: Web-Flasher BIN erstellen",
+      "type": "shell",
+      "command": "powershell",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}\\tools\\build_webflash.ps1"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "DEACS: Serieller Monitor",
+      "type": "shell",
+      "command": "pio",
+      "args": ["device", "monitor"],
+      "problemMatcher": []
+    }
+  ]
+}

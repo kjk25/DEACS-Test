@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+
+<html lang="de">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>DEACS</title>
+<link href="/style.css?v=0.13.04" rel="stylesheet"/>
+</head>
+<body>
+<header class="topbar">
+<div class="brand">
+<h1>DEACS <span id="headerVersion">V-.-.-</span></h1>
+<small>Der Etwas Andere CAN Sniffer</small>
+</div>
+<div class="statusPills">
+<span class="pill offline" id="connection">Getrennt</span>
+<button class="pill statusPillButton" id="canMode" type="button">CAN --</button>
+<span class="pill" id="canBitrate">-- kbit/s</span>
+<span class="pill">RX <b id="rxRate">0</b>/s</span>
+<span class="pill">TX <b id="txRate">0</b>/s</span>
+<span class="pill">Queue <b id="queue">0</b></span>
+<span class="pill">Drops <b id="drops">0</b></span>
+<span class="pill">TWAI verloren <b id="twaiLost">0</b></span>
+</div>
+</header>
+<nav>
+<button class="active" data-tab="monitor">Monitor</button>
+<button data-tab="decoder">Übersicht</button>
+<button data-tab="decoded">Decoded messages</button>
+<button data-tab="labels">Label dictionary</button>
+<button data-tab="tx">TX</button>
+<button data-tab="sim">Simulator</button>
+<button data-tab="logs">Logs</button>
+<button data-tab="events">Ereignis</button>
+<button data-tab="settings">Settings</button>
+</nav>
+<main>
+<section class="tab active" id="monitor">
+<div class="toolbar">
+<button id="pause">Pause</button><button id="clear">Leeren</button>
+<input id="search" placeholder="ID oder Daten"/>
+<input class="short" id="idFrom" placeholder="ID von"/>
+<input class="short" id="idTo" placeholder="ID bis"/>
+<select id="direction"><option value="all">RX + TX + SIM + GEN</option><option>RX</option><option>TX</option><option>SIM</option><option>GEN</option></select>
+<select id="frameType"><option value="all">STD + EXT</option><option value="std">nur STD</option><option value="ext">nur EXT</option><option value="rtr">nur RTR</option></select>
+<select id="dlcFilter"><option value="all">DLC alle</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select>
+<button class="toggleButton monitorToggle" data-label="Auto-Scroll" id="autoscroll" type="button">Auto-Scroll: Ein</button>
+<button hidden="" id="scrollToEnd" type="button">Zum Ende</button>
+</div>
+<details class="filterPanel monitorFilterGroup deacsCollapsibleGroup toolGroupBlue">
+<summary>Weitere Filter und Session</summary>
+<div class="toolbar">
+<button aria-pressed="false" id="ageToggle" type="button">Ältere ausblenden</button>
+<select aria-label="Alter in Sekunden" class="tiny" id="maxAge"><option>1</option><option>2</option><option>3</option><option selected="">5</option><option>10</option><option>20</option><option>30</option><option>60</option></select><span>s</span>
+<input id="showIds" placeholder="nur IDs: 123 230 ..."/>
+<input id="hideIds" placeholder="IDs ausblenden: 7E8 ..."/>
+<button id="saveSession">Session speichern</button><button id="loadSession">Session laden</button><button id="playSession">Session wiedergeben</button>
+<input accept="application/json,.json" hidden="" id="sessionFile" type="file"/>
+</div>
+</details>
+<details class="monitorDataGroup deacsCollapsibleGroup dataGroupGreen" open=""><summary><span>CAN-Monitor</span></summary><div class="deacsGroupBody">
+
+<div class="monitorInfo"><span>Empfangen: <b id="receivedCount">0</b></span><span>Puffer: <b id="bufferCount">0</b>/10000</span><span>Angezeigt: <b id="visibleCount">0</b></span><span id="pauseInfo"></span></div>
+<div class="tablewrap monitorTable"><table><thead><tr><th class="idFormatToggle" data-id-format-toggle="" title="Klicken: HEX/DEC umschalten">ID (HEX)</th><th>Label</th><th>Zeit [s]</th><th>Δt [ms]</th><th>Quelle</th><th>DLC</th><th>D0</th><th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th><th>D6</th><th>D7</th><th>ASCII</th></tr></thead><tbody id="frames"></tbody></table></div>
+</div></details>
+</section>
+<section class="tab" id="decoder">
+<details class="overviewToolsGroup deacsCollapsibleGroup toolGroupBlue" open=""><summary><span>Übersicht-Werkzeuge</span></summary><div class="deacsGroupBody">
+
+<div class="toolbar overviewToolbar">
+<fieldset class="overviewToolGroup overviewSearchGroup"><legend>Suche</legend>
+<button id="decoderClear">Leeren</button>
+<input id="decoderSearch" placeholder="ID oder Label suchen"/>
+</fieldset>
+<fieldset class="overviewToolGroup"><legend>Sichtbare IDs</legend>
+<button class="toggleButton" data-label="Nur Änderungen" id="changedOnly" type="button">Nur Änderungen: Ein</button>
+<button class="toggleButton" data-label="Nur Decoded" id="decodedOnly" type="button">Nur Decoded: Aus</button>
+<label class="changeWindowControl" for="changeWindow">Ausblenden nach: <select aria-label="Anzeigedauer geänderter Frames" id="changeWindow"><option value="0.5">0,5</option><option value="1">1</option><option selected="" value="2">2</option><option value="3">3</option><option value="5">5</option><option value="10">10</option><option value="30">30</option><option value="60">60</option></select> s</label>
+</fieldset>
+<fieldset class="overviewToolGroup"><legend>Frequenzfilter</legend>
+<button class="toggleButton" data-label="Schnelle ausblenden" id="hideFastFrames" type="button">Schnelle ausblenden: Aus</button>
+<label class="changeWindowControl" for="fastFrameThreshold">unter <select aria-label="Grenze für schnell wiederkehrende IDs" id="fastFrameThreshold"><option value="10">10</option><option value="20">20</option><option value="50">50</option><option selected="" value="100">100</option><option value="200">200</option><option value="500">500</option><option value="1000">1000</option></select> ms</label>
+</fieldset>
+<fieldset class="overviewToolGroup"><legend>Hervorhebung</legend>
+<button class="toggleButton" data-label="Neue Pakete" id="highlightNew" type="button">Neue Pakete: Ein</button>
+<button class="toggleButton" data-label="Neue Daten" id="highlightData" type="button">Neue Daten: Ein</button>
+</fieldset>
+</div>
+</div></details>
+<details class="overviewDataGroup deacsCollapsibleGroup dataGroupGreen" open=""><summary><span>CAN-Übersicht</span></summary><div class="deacsGroupBody">
+
+<div class="tablewrap overviewTableWrap" id="overviewTableWrap"><table class="overviewStatsTable"><thead><tr><th class="sortableHeader" data-id-format-toggle="" data-overview-sort="id" data-sort-label="ID" title="Nach CAN-ID sortieren">ID (HEX)</th><th class="sortableHeader" data-overview-sort="label" data-sort-label="Label">Label</th><th>Quelle</th><th>DLC</th><th title="Geänderte Bytes gegenüber dem vorherigen Frame">Δ</th><th>Δt Ø [ms]</th><th>Min</th><th>Max</th><th>D0</th><th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th><th>D6</th><th>D7</th><th>ASCII</th><th class="sortableHeader" data-overview-sort="frames" data-sort-label="Frames">Frames</th><th class="sortableHeader" data-overview-sort="age" data-sort-label="Zuletzt [s]">Zuletzt [s]</th><th></th></tr></thead><tbody id="decodedFrames"></tbody></table></div>
+<div class="overviewRenderStatus" role="status"><span>Frames: <b id="overviewStatusFrames">0</b></span><span>IDs: <b id="overviewStatusIds">0</b></span><span>Sichtbar: <b id="overviewStatusVisible">0</b></span></div>
+</div></details>
+</section>
+<section class="tab" id="decoded">
+<details class="decodedToolsGroup deacsCollapsibleGroup toolGroupBlue" open=""><summary><span>Decoder-Werkzeuge</span></summary><div class="deacsGroupBody">
+
+<div class="toolbar">
+<button id="decodedNew">Neue Zeile</button>
+<button id="decodedDuplicate">Zeile duplizieren</button>
+<button id="decodedDelete">Ausgewählte Zeile löschen</button>
+<button class="primary" id="decodedSend">Ausgewähltes Paket senden</button>
+<button id="decodedListClear">Liste leeren</button>
+<span id="decodedResult"></span>
+</div>
+</div></details>
+<details class="decodedDataGroup deacsCollapsibleGroup dataGroupGreen" open=""><summary><span>Decoded Messages</span></summary><div class="deacsGroupBody">
+
+<div class="tablewrap decodedEditorWrap"><table class="decodedEditor"><thead><tr><th data-id-format-toggle="">ID (HEX)</th><th>Label</th><th>DLC</th><th>D0</th><th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th><th>D6</th><th>D7</th><th>ASCII</th></tr></thead><tbody id="decodedList"></tbody></table></div>
+</div></details>
+<details class="decodedDbcGroup deacsCollapsibleGroup dataGroupGreen" open=""><summary><span>DBC-Signale</span></summary><div class="deacsGroupBody">
+<div class="dbcDecodedHeader"><span>Aktive DBC: <b id="decodedDbcName">keine</b></span><span id="decodedDbcMessage">Keine DBC-Nachricht zur Auswahl.</span></div>
+<div class="tablewrap dbcSignalTable"><table><thead><tr><th>Signal</th><th>Wert</th><th>Einheit</th><th>Raw</th><th>Bit</th><th>Länge</th><th>Typ</th></tr></thead><tbody id="decodedDbcSignals"><tr class="dbcEmptyRow"><td colspan="7">Keine DBC aktiv.</td></tr></tbody></table></div>
+</div></details>
+<div class="decodedByteInspector" hidden="" id="decodedByteInspector">
+<span class="decodedInspectorTitle">Byte <b id="decodedInspectorByte">D0</b></span>
+<span>HEX <b id="decodedInspectorHex">00</b></span>
+<span>DEC <b id="decodedInspectorUnsigned">0</b></span>
+<span>Signed <b id="decodedInspectorSigned">0</b></span>
+<span>BIN <b id="decodedInspectorBinary">00000000</b></span>
+<span>ASCII <b id="decodedInspectorAscii">.</b></span>
+<span class="decodedInspectorBits" id="decodedInspectorBits"></span>
+</div>
+<p class="hint">Zeile anklicken zum Auswählen. Datenbyte anklicken für HEX, DEC, BIN und Bitanzeige.</p>
+</section>
+<section class="tab" id="labels"><details class="singlePageGroup deacsCollapsibleGroup toolGroupBlue" open=""><summary><span>Label Dictionary</span></summary><div class="deacsGroupBody">
+<div class="card wide labelCard"><h2>Label dictionary</h2><div class="toolbar"><input id="labelId" placeholder="CAN-ID, z. B. 7E8"/><input id="labelText" placeholder="Label"/><button id="labelNew">Neu</button><button id="labelSave">Speichern</button><button id="labelDelete">Auswahl löschen</button><button id="labelsExport">Export</button>
+<button id="labelsImport">Import</button><input accept="application/json,.json" hidden="" id="labelsFile" type="file"/></div>
+<div class="tablewrap"><table><thead><tr><th class="idFormatToggle" data-id-format-toggle="" title="Klicken: HEX/DEC umschalten">ID (HEX)</th><th>Label</th></tr></thead><tbody id="labelRows"></tbody></table></div></div>
+</div></details></section>
+<section class="tab" id="tx"><details class="singlePageGroup deacsCollapsibleGroup toolGroupBlue" open=""><summary><span>CAN senden und gesendete Frames</span></summary><div class="deacsGroupBody">
+<div class="card wide txCard">
+<div class="sectionHeader">
+<div><h2>CAN senden</h2><p class="sectionSubtitle">Einzelne oder zyklische CAN-Frames senden</p></div>
+</div>
+<div class="txModeHint" id="txModeHint" role="status">Senden ist im Listen-only-Modus deaktiviert.</div>
+<div class="txPanel txFramePanel">
+<span class="txPanelTitle">Frame und Datenbytes</span>
+<div class="txFrameLine">
+<label class="txIdField"><span data-id-format-label="">ID (HEX)</span><input id="txId" inputmode="text" maxlength="10" value="123"/></label>
+<label class="txDlcField"><span>DLC</span><select id="txDlc"><option>0</option><option>1</option><option>2</option><option>3</option><option selected="">4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label>
+<div class="byteEditor" id="txBytes"><label>D0<input maxlength="2" value="01"/></label><label>D1<input maxlength="2" value="02"/></label><label>D2<input maxlength="2" value="03"/></label><label>D3<input maxlength="2" value="04"/></label><label>D4<input maxlength="2" value="00"/></label><label>D5<input maxlength="2" value="00"/></label><label>D6<input maxlength="2" value="00"/></label><label>D7<input maxlength="2" value="00"/></label></div>
+<div class="txFrameActions"><button class="primary" id="send">Senden</button><button class="danger" id="txClear">Löschen</button></div>
+</div>
+</div>
+<div class="txPanel">
+<span class="txPanelTitle">Optionen</span>
+<div class="txOptionsGrid">
+<button aria-pressed="false" class="toggleButton" data-label="Extended ID" id="txExt" type="button">Extended ID: Aus</button>
+<button aria-pressed="false" class="toggleButton" data-label="RTR" id="txRtr" type="button">RTR: Aus</button>
+<button aria-pressed="false" class="toggleButton" id="txCyclic" type="button">Zyklus starten</button>
+<label class="txIntervalLabel"><span>Intervall</span><select id="txInterval"><option value="10">10</option><option value="20">20</option><option value="50">50</option><option selected="" value="100">100</option><option value="200">200</option><option value="500">500</option><option value="1000">1000</option><option value="2000">2000</option><option value="5000">5000</option></select><span>ms</span></label>
+</div>
+<div class="txCycleStatus" hidden="" id="txCycleStatus" role="status"></div>
+</div>
+<div class="txHistory">
+<div class="txHistoryHeader"><div><h3>Gesendete Frames</h3><span>Zeile anklicken: in Eingabe übernehmen</span></div><button class="danger" id="txHistoryClear" type="button">Liste löschen</button></div>
+<div class="tablewrap txHistoryTable"><table><colgroup><col class="txColId"><col class="txColLabel"><col class="txColDlc"><col class="txColByte"><col class="txColByte"><col class="txColByte"><col class="txColByte"><col class="txColByte"><col class="txColByte"><col class="txColByte"><col class="txColByte"><col class="txColType"><col class="txColCount"><col class="txColLast"><col class="txColAction"></colgroup><thead><tr><th class="idFormatToggle" data-id-format-toggle="" title="Klicken: HEX/DEC umschalten">ID (HEX)</th><th>Label</th><th>DLC</th><th>D0</th><th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th><th>D6</th><th>D7</th><th>Typ</th><th>Anzahl</th><th>Zuletzt</th><th>Aktion</th></tr></thead><tbody id="txHistoryRows"></tbody></table></div>
+</div>
+</div>
+</div></details></section>
+<section class="tab" id="sim"><div class="card wide simCard"><div class="simTitleRow"><div><h2>Mehrfach-Frame-Simulator</h2><div class="simSafetyHint">Interne Simulation · kein CAN-TX</div></div><div class="simBackendState">Backend <span class="simBackendBadge browser tooltip-green tooltip-bottom tooltip-right" data-tooltip="Simulator läuft lokal im Browser und benötigt keine ESP32-Verbindung." id="simBackend">Browser</span></div></div><details class="simRandomOptions deacsCollapsibleGroup" id="simRandomOptions"><summary><span>Generator (Reverse Engineering)</span></summary><div class="simRandomGrid"><label>Generator<select id="simGeneratorType"><option value="random">Zufall</option><option value="counter">Zähler</option><option value="runningbit">Laufbit</option><option value="sine">Sinus</option><option value="saw">Sägezahn</option><option value="square">Rechteck</option><option value="lfsr">LFSR</option></select></label><label>Frames/s<input id="simRandomRate" max="1000" min="1" type="number" value="50"/></label><label><span data-id-range-label="from">ID von (HEX)</span><input id="simRandomIdMin" maxlength="10" value="000"/></label><label><span data-id-range-label="to">ID bis (HEX)</span><input id="simRandomIdMax" maxlength="10" value="7FF"/></label><label>DLC<select id="simRandomDlc"><option value="random">Zufällig</option><option value="1">1 Byte</option><option value="2">2 Byte</option><option value="3">3 Byte</option><option value="4">4 Byte</option><option value="5">5 Byte</option><option value="6">6 Byte</option><option value="7">7 Byte</option><option value="8">8 Byte</option></select></label></div><div class="simGeneratorExtras" id="simGeneratorExtras"><label data-generators="counter">Startwert<input id="simGenStart" max="255" min="0" type="number" value="0"/></label><label data-generators="counter saw">Schritt<input id="simGenStep" max="255" min="1" type="number" value="1"/></label><label data-generators="sine saw square">Datenbyte<select id="simGenByte"><option value="0">Byte 0</option><option value="1">Byte 1</option><option value="2">Byte 2</option><option value="3">Byte 3</option><option value="4">Byte 4</option><option value="5">Byte 5</option><option value="6">Byte 6</option><option value="7">Byte 7</option></select></label><label data-generators="sine square">Periode (Frames)<input id="simGenPeriod" max="10000" min="2" type="number" value="32"/></label><label data-generators="lfsr">Seed (HEX)<input id="simGenSeed" maxlength="4" value="ACE1"/></label><span class="simGeneratorNoExtras" id="simGeneratorNoExtras">Keine zusätzlichen Einstellungen</span></div><div class="simGeneratorFrame"><label class="simBaseDataLabel">Grunddaten<input id="simGenBaseData" maxlength="23" placeholder="00 00 00 00 00 00 00 00" value="00 00 00 00 00 00 00 00"/></label><div class="simByteMask"><span>Bytes</span><div id="simGenMask"><label><input checked="" data-byte="0" type="checkbox"/>B0</label><label><input data-byte="1" type="checkbox"/>B1</label><label><input data-byte="2" type="checkbox"/>B2</label><label><input data-byte="3" type="checkbox"/>B3</label><label><input data-byte="4" type="checkbox"/>B4</label><label><input data-byte="5" type="checkbox"/>B5</label><label><input data-byte="6" type="checkbox"/>B6</label><label><input data-byte="7" type="checkbox"/>B7</label></div></div><div class="simGeneratorPreview"><span>Vorschau:</span><code id="simGenPreview">000  00 00 00 00 00 00 00 00</code></div></div><div class="sectionActionRow">
+<button aria-pressed="false" class="generatorPrimary" id="simRandom" type="button">
+        ▶ Generator starten
+      </button>
+</div>
+</details>
+<details class="logReplayGroup deacsCollapsibleGroup">
+<summary><span>Log-Wiedergabe</span></summary>
+<div class="deacsGroupBody">
+<div class="logReplayLoadedInfo">
+<span>Geladene Logdaten: <b id="simReplayLoadedCount">0</b> Frames</span>
+<span>Wiedergegeben: <b id="simReplayProgress">0</b> / <b id="simReplayTotal">0</b></span>
+</div>
+<div class="logReplayControls">
+<fieldset class="simReplaySources">
+<legend>Quellen auswählen</legend>
+<label><input checked="" id="simReplayRx" type="checkbox"/> RX (<span id="simReplayRxCount">0</span>)</label>
+<label><input checked="" id="simReplayTx" type="checkbox"/> TX (<span id="simReplayTxCount">0</span>)</label>
+<label><input checked="" id="simReplaySim" type="checkbox"/> SIM/GEN (<span id="simReplaySimCount">0</span>)</label>
+<label><input checked="" id="simReplayOther" type="checkbox"/> Andere (<span id="simReplayOtherCount">0</span>)</label>
+</fieldset>
+<label class="simReplayOption">Tempo
+      <select id="simReplaySpeed">
+<option value="0.25">0,25×</option>
+<option value="0.5">0,5×</option>
+<option selected="" value="1">1×</option>
+<option value="2">2×</option>
+<option value="5">5×</option>
+<option value="10">10×</option>
+</select>
+</label>
+<label class="simReplayOption"><input id="simReplayLoop" type="checkbox"/> Wiederholen</label>
+</div>
+<div class="sectionActionRow">
+<button disabled="" id="simReplay" type="button">▶ Log abspielen</button>
+</div>
+</div>
+</details>
+<details class="simulatorGroup deacsCollapsibleGroup" open="">
+<summary><span>Simulator</span></summary>
+<div class="deacsGroupBody">
+<div class="simEmptyHint" id="simEmptyHint">Keine Simulator-Frames vorhanden. Über „Beispiele laden“ können Testdaten eingefügt werden.</div><div class="simAdd"><label class="simAddId"><span data-id-format-label="">ID (HEX)</span><input id="simId" maxlength="10" placeholder="ID" value="123"/></label><label class="simAddDlc"><span>DLC</span><select id="simDlc" aria-label="Simulator-DLC"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option selected>8</option></select></label><div class="simAddBytes" id="simAddBytes" aria-label="Datenbytes"><label><span>D0</span><input maxlength="2" value="00" aria-label="D0"/></label><label><span>D1</span><input maxlength="2" value="11" aria-label="D1"/></label><label><span>D2</span><input maxlength="2" value="22" aria-label="D2"/></label><label><span>D3</span><input maxlength="2" value="33" aria-label="D3"/></label><label><span>D4</span><input maxlength="2" value="44" aria-label="D4"/></label><label><span>D5</span><input maxlength="2" value="55" aria-label="D5"/></label><label><span>D6</span><input maxlength="2" value="66" aria-label="D6"/></label><label><span>D7</span><input maxlength="2" value="77" aria-label="D7"/></label></div><label class="simAddInterval"><span>Intervall</span><select aria-label="Simulator-Intervall" id="simMs">
+<option value="10">10 ms</option><option value="20">20 ms</option><option value="50">50 ms</option><option selected="" value="100">100 ms</option><option value="200">200 ms</option><option value="500">500 ms</option><option value="1000">1000 ms</option><option value="2000">2000 ms</option><option value="5000">5000 ms</option>
+</select></label><button id="simAdd">Frame hinzufügen</button><div class="simAddActions"><button id="simExamples" type="button">Beispiele laden</button><button class="danger" id="simClear" type="button">Alle löschen</button></div></div><div class="tablewrap simTable"><table><colgroup><col class="simColId"><col class="simColLabel"><col class="simColDlc"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColInterval"><col class="simColActive"><col class="simColSource"><col class="simColDrag"><col class="simColMenu"></colgroup><thead><tr><th class="idFormatToggle" data-id-format-toggle="" title="Klicken: HEX/DEC umschalten">ID (HEX)</th><th>Label</th><th>DLC</th><th>D0</th><th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th><th>D6</th><th>D7</th><th>Intervall</th><th>Aktiv</th><th>Quelle</th><th aria-label="Reihenfolge" class="simDragCol"></th><th aria-label="Aktionen"></th></tr></thead><tbody id="simRows"></tbody></table></div><div class="simStatusLine" role="status"><span class="simBrowserStatus" id="simBrowserStatus">Browser-Simulator bereit</span><span class="simStatusSep">|</span><span>Frames <b id="simCountTotal">0</b></span><span>Aktiv <b id="simCountActive">0</b></span><span>Inaktiv <b id="simCountInactive">0</b></span></div>
+<div class="sectionActionRow">
+<button class="primary" id="simToggle">▶ Simulation starten</button>
+</div>
+</div>
+</details>
+</div>
+</section>
+<section class="tab" id="logs"><details class="singlePageGroup deacsCollapsibleGroup replayGroupOrange" open=""><summary><span>Browser-Logging und Import</span></summary><div class="deacsGroupBody"><div class="card wide logCard"><h2>Browser-Logging (IndexedDB)</h2>
+<div class="logStatusGrid">
+<span>Status</span><b id="logState">aus</b>
+<span>Session</span><b id="logSession">-</b>
+<span>Frames</span><b id="logFrames">0</b>
+<span>Gespeichert</span><b id="logSaved">0</b>
+<span>Datenmenge</span><b id="logSize">0 B</b>
+</div>
+<div class="importInfo empty" id="importInfo">
+<div class="importInfoHeader"><span>Aktuelle Daten</span><b id="importState">Keine Daten geladen</b></div>
+<div class="importInfoGrid">
+<span>Datei</span><b id="importFile">-</b>
+<span>Frames</span><b id="importFrames">0</b>
+<span>Quelle</span><b id="importSource">-</b>
+<span>Zeitraum</span><b id="importRange">-</b>
+<span>Dauer</span><b id="importDuration">-</b>
+<span>Dateigröße</span><b id="importSize">0 B</b>
+<span>Importiert</span><b id="importTime">-</b>
+</div>
+</div>
+<div aria-label="Log-Aktionen" class="logActions logToolbar">
+<button class="primary" id="logToggle">Log starten</button>
+<button disabled="" id="exportMenuToggle" type="button">Export</button>
+<button id="dataImport" type="button">Import</button>
+<button disabled="" id="importReplay" type="button">Log in den Simulator laden</button>
+<button class="dangerButton" disabled="" id="logClear">Logs löschen</button>
+<input accept=".dlog,.csv,.json,text/csv,application/json,application/x-deacs-dlog" hidden="" id="dataImportFile" type="file"/>
+</div>
+<div class="logHints">
+<p class="hint">Die Frames werden lokal in der IndexedDB dieses Browsers gespeichert. F5 oder ein Browserabsturz löscht bereits geschriebene Daten nicht. Der Puffer wird spätestens jede Sekunde geleert.</p>
+<p class="hint">Export bietet DEACS (.dlog) und CSV (.csv) an. Dateien werden bei ungefähr 5 MB automatisch aufgeteilt. Browserdaten löschen oder privater Modus können gespeicherte Logs entfernen.</p>
+</div>
+<p class="logError" id="logError"></p>
+</div></div></details></section>
+<section class="tab" id="events">
+<details class="eventSourceGroup deacsCollapsibleGroup toolGroupBlue" open=""><summary><span>Quelle und Marker</span></summary><div class="deacsGroupBody">
+<div class="eventControlGrid">
+  <div class="eventPanel">
+    <h2>Quelle</h2>
+    <div class="eventSourceOptions"><b>Aktueller Monitor</b></div>
+    <div class="eventStatusLine" role="status">Status: <b id="eventSourceStatus">Warte auf Monitor-Frames</b></div>
+  </div>
+  <div class="eventPanel">
+    <h2>Marker</h2>
+    <div class="eventMarkerEntry">
+      <input id="eventMarkerText" maxlength="80" placeholder="Bezeichnung, z. B. Sitzheizung gedrückt"/>
+      <button class="primary" id="eventMarkerAdd" type="button">Marker setzen</button>
+      <button class="danger" id="eventMarkerDelete" type="button">Auswahl löschen</button>
+    </div>
+  </div>
+</div>
+<div class="tablewrap eventMarkerTable"><table><thead><tr><th>Zeit</th><th>Marker</th><th>Quelle</th></tr></thead><tbody id="eventMarkerRows"><tr class="eventEmptyRow"><td colspan="3">Noch keine Marker gesetzt.</td></tr></tbody></table></div>
+</div></details>
+
+<details class="eventAnalysisGroup deacsCollapsibleGroup toolGroupBlue" open=""><summary><span>Analyse-Einstellungen</span></summary><div class="deacsGroupBody">
+<div class="eventAnalysisControls">
+  <label>Vorher <input id="eventBeforeMs" type="number" min="0" max="60000" step="100" value="500"/> ms</label>
+  <label>Nachher <input id="eventAfterMs" type="number" min="0" max="60000" step="100" value="1500"/> ms</label>
+  <label><input id="eventOnlyChanges" type="checkbox" checked=""/> Nur Änderungen</label>
+  <label><input id="eventHideSame" type="checkbox" checked=""/> Gleiche Daten ausblenden</label>
+  <label><input id="eventHideCyclic" type="checkbox"/> Zyklische Nachrichten ausblenden</label>
+  <button class="primary" id="eventAnalyze" type="button">Analyse starten</button>
+</div>
+<div class="eventAnalysisHint" id="eventAnalysisHint">Marker setzen und anschließend die Analyse starten.</div>
+</div></details>
+
+<details class="eventResultsGroup deacsCollapsibleGroup dataGroupGreen" open=""><summary><span>Ergebnisse</span></summary><div class="deacsGroupBody">
+<div class="tablewrap eventResultsTable"><table><thead><tr><th>Score</th><th data-id-format-toggle="">ID (HEX)</th><th>Frames</th><th>Änderungen</th><th>Geänderte Bytes</th></tr></thead><tbody id="eventResultRows"><tr class="eventEmptyRow"><td colspan="5">Noch keine Analyse durchgeführt.</td></tr></tbody></table></div>
+<div class="eventDetailPanel">
+  <h2>Detail</h2>
+  <div class="eventDetailPlaceholder" id="eventDetailPlaceholder">Eine Ergebniszeile auswählen, um Vorher/Nachher sowie Byte- und Bitänderungen anzuzeigen.</div>
+</div>
+</div></details>
+</section>
+<section class="tab" id="settings"><details class="singlePageGroup deacsCollapsibleGroup toolGroupBlue" open=""><summary><span>Einstellungen</span></summary><div class="deacsGroupBody"><div class="card settingsCard"><h2>CAN-Einstellungen</h2>
+<div class="settingsRow">
+<label>Bitrate <select id="bitrate"><option>1000000</option><option selected="">500000</option><option>250000</option><option>125000</option><option>100000</option><option>50000</option><option>25000</option></select></label>
+<label>Modus <select id="mode"><option value="listen">Listen-only</option><option value="normal">TX mit ACK</option><option value="noack">TX ohne ACK</option></select></label>
+<label>ID-Anzeige <select id="idDisplayFormatSetting"><option value="HEX">Hexadezimal</option><option value="DEC">Dezimal</option></select></label>
+</div>
+<hr/>
+<h3>TX-Live-Quellen</h3>
+<div class="settingsRow liveTxSettingsRow">
+<label><input id="liveTxSimulator" type="checkbox"/> Simulator live auf CAN senden</label>
+<label><input id="liveTxGenerator" type="checkbox"/> Generator live auf CAN senden</label>
+<label><input id="liveTxLog" type="checkbox"/> Log-Wiedergabe live auf CAN senden</label>
+</div>
+<p class="hint">Wirkt nur bei verbundenem ESP32 im Modus „Normal / TX“. Im Listen-only-Modus wird niemals gesendet.</p>
+<hr/>
+<h3>CAN-Filter</h3>
+<div class="settingsRow serverFilterRow">
+<label>Wirkung <select id="filterMode"><option value="exclude" selected="">Diese IDs ausblenden</option><option value="include">Nur diese IDs anzeigen</option></select></label>
+<label class="serverFilterIdsLabel">IDs <input id="filterIds" placeholder="z. B. 123, 0x230, 7E8h, 291d"/></label>
+<button id="applyFilter">Filter anwenden</button>
+</div>
+<p class="hint">Der Serverfilter kann eingetragene IDs ausschließlich anzeigen oder gezielt ausblenden. Trennung mit Leerzeichen, Komma oder Semikolon. HEX: 123, 0x123 oder 123h · Dezimal: 291d oder dec:291.</p>
+<hr/>
+<div class="dbcSettings">
+<h3>DBC-Dateien</h3>
+<div class="settingsRow dbcSettingsRow">
+<label class="dbcEnableLabel"><input id="dbcEnabled" type="checkbox"/> DBC verwenden</label>
+<label>Aktive DBC <select id="dbcSelect"><option value="">Keine DBC gefunden</option></select></label>
+<button id="dbcReload" type="button">Neu laden</button>
+<button id="dbcUpload" type="button">DBC hinzufügen</button><input accept=".dbc,text/plain" hidden="" id="dbcUploadFile" type="file"/>
+<button class="dangerButton" disabled="" id="dbcDelete" type="button">Auswahl löschen</button>
+</div>
+<p class="hint">DBC-Dateien direkt hier hinzufügen oder löschen. Sie werden im ESP32 gespeichert. Manuelle Label-Dictionary-Einträge haben Vorrang vor DBC-Namen.</p>
+<div class="dbcStatusLine" id="dbcStatus">Keine DBC geladen.</div>
+</div>
+<details class="statusDetails"><summary>Diagnose und Gerätestatus</summary>
+<div class="diagnosticGrid">
+<span>Ring rein/s</span><b id="ringWriteRate">0</b>
+<span>Ring raus/s</span><b id="ringReadRate">0</b>
+<span>WS gesendet/s</span><b id="wsFrameRate">0</b>
+<span>Browser RX/s</span><b id="browserFrameRate">0</b>
+<span>Server gefiltert/s</span><b id="filteredFrameRate">0</b>
+<span>Fehler gesamt</span><b id="errors">0</b>
+<span>BUS-Alerts</span><b id="busErrors">0</b>
+<span>RX-Queue voll</span><b id="rxQueueFullAlerts">0</b>
+<span>Max. RX-Burst</span><b id="maxRxBurst">0</b>
+<span>Queue aktuell</span><b><span id="diagQueue">0</span> / <span id="queueCapacity">0</span></b>
+<span>Queue Auslastung</span><b><span id="queueUtilization">0</span> %</b>
+<span>Queue Maximum</span><b id="queueHighWater">0</b>
+<span>RX-Drain Maximum</span><b><span id="maxRxDrainUs">0</span> µs</b>
+<span>Frames je Drain max.</span><b id="maxRxDrainFrames">0</b>
+<span>Backlog-Ereignisse</span><b id="rxBacklogEvents">0</b>
+<span>Heap frei</span><b><span id="freeHeap">0</span> B</b>
+<span>Heap Minimum</span><b><span id="minFreeHeap">0</span> B</b>
+<span>Größter Block</span><b><span id="largestHeapBlock">0</span> B</b>
+<span>Block Minimum</span><b><span id="minLargestHeapBlock">0</span> B</b>
+<span>WS Batch Maximum</span><b><span id="maxWsBatchBytes">0</span> B</b>
+<span>WS Sendezeit Maximum</span><b><span id="maxWsBroadcastUs">0</span> µs</b>
+<span>Letzter CAN-Frame vor</span><b><span id="lastCanFrameAgo">--</span></b>
+<span>Letztes WS-Paket vor</span><b><span id="lastWsPacketAgo">--</span></b>
+<span>WS-Clients</span><b id="wsClients">0</b>
+<span>Diagnose-Ereignisse</span><b id="diagnosticEventCount">0</b>
+<span>TWAI-Zustand</span><b id="twaiState">--</b>
+<span>REC</span><b id="rxErrorCounter">0</b>
+<span>TEC</span><b id="txErrorCounter">0</b>
+<span>HW-Busfehler</span><b id="driverBusErrors">0</b>
+<span>HW Δ/s</span><b id="driverBusErrorDelta">0</b>
+<span>Alert-Lesungen</span><b id="alertReadCount">0</b>
+<span>Alert raw</span><b id="lastAlertMaskHex">0x00000000</b>
+<span>Letzter Alert</span><b id="lastAlert">NONE</b>
+<span>RXD</span><b id="rxPinLevel">HIGH</b>
+<span>RXD LOW</span><b><span id="rxPinLowPercent">0</span> %</b>
+</div>
+<div class="diagnosticActions"><button id="runDiagnosticSelfTest" type="button">Selbsttest starten</button><button id="loadDiagnosticEvents" type="button">Ereignisse laden</button><button id="resetDiagnosticPeaks" type="button">Spitzenwerte zurücksetzen</button></div>
+<div class="diagnosticResult" hidden="" id="diagnosticSelfTest"></div>
+<pre class="diagnosticEvents" hidden="" id="diagnosticEvents"></pre>
+<pre id="statusDump"></pre>
+</details>
+</div></div></details></section>
+</main>
+<div aria-live="polite" class="appNotice" id="appNotice" role="status"><span class="noticeIcon">✓</span><span id="appNoticeText"></span><button aria-label="Meldung schließen" id="appNoticeClose">×</button></div>
+<div aria-labelledby="appDialogTitle" aria-modal="true" class="appDialog" id="appDialog" role="dialog">
+<div class="dialogCard"><h3 id="appDialogTitle">Bitte bestätigen</h3><p id="appDialogText"></p><div class="dialogActions"><button id="appDialogCancel">Abbrechen</button><button class="primary" id="appDialogConfirm">Bestätigen</button></div></div>
+</div>
+<div aria-labelledby="exportDialogTitle" aria-modal="true" class="appDialog" id="exportDialog" role="dialog">
+<div class="dialogCard exportDialogCard"><h3 id="exportDialogTitle">Log exportieren</h3><p>Gewünschtes Dateiformat auswählen:</p><div class="exportChoices"><button id="logSave" type="button">DEACS (.dlog)</button><button id="logExport" type="button">CSV (.csv)</button></div><div class="dialogActions"><button id="exportDialogCancel" type="button">Abbrechen</button></div></div>
+</div>
+<div aria-hidden="true" aria-labelledby="logExportProgressTitle" aria-modal="true" class="appDialog logExportProgressDialog" id="logExportProgress" role="dialog">
+<div class="dialogCard logExportProgressCard"><h3 id="logExportProgressTitle">Log wird exportiert</h3><p id="logExportProgressStatus">Logdaten werden gelesen …</p><div aria-label="Exportfortschritt" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="logExportProgressTrack" id="logExportProgressBar" role="progressbar"><span></span></div><div class="logExportProgressMeta"><b id="logExportProgressPercent">0 %</b><span id="logExportProgressFrames"></span></div><small>DEACS arbeitet weiter. Bei großen Logs kann die Vorbereitung etwas dauern.</small></div>
+</div>
+<footer><span>DEACS <span id="footerVersion">-</span></span><span>FW <b id="fw">-</b></span></footer>
+<script src="/app.js?v=0.13.04"></script>
+</body></html>

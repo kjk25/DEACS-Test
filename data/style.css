@@ -1,0 +1,2307 @@
+/* DEACS-Stil: Jeder sichtbar dargestellte Hexwert trägt das Präfix 0x. */
+.decodedByteCell::before{content:'0x';color:#8fa4af;font:11px ui-monospace,Consolas,monospace;margin-right:2px}
+#txId,#simId,#simRandomIdMin,#simRandomIdMax,#labelId,#idFrom,#idTo,#showIds,#hideIds,#filterIds,.decodedEditor .idInput,#sim .simIdInput,#sim .simByteValue{text-transform:none!important}:root{font-family:system-ui,sans-serif;color:#e8eef2;background:#10161a}*{box-sizing:border-box}body{margin:0;padding-bottom:34px}button,.button,input,select{background:#202a34;color:#e8eef2;border:1px solid #344350;border-radius:9px;padding:10px 12px;text-decoration:none}button,.button{cursor:pointer}button:hover,.button:hover{border-color:#607787}.topbar{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:14px 18px;background:#182126;border-bottom:1px solid #2e3b42}.brand{min-width:max-content}.brand h1{margin:0;font-size:24px}.brand h1 span{color:#4ee0a1;font-size:.8em}.brand small{color:#91a7b2}.statusPills{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap}.pill{display:inline-flex;align-items:center;gap:4px;background:#202a34;border:1px solid #2f3e48;border-radius:18px;padding:7px 10px;font-size:13px;white-space:nowrap}.pill.online{background:#176b4b;border-color:#258563}.pill.offline{background:#8b2d36;border-color:#a33a45}nav{display:flex;gap:5px;padding:10px 12px;border-bottom:1px solid #2e3b42;background:#151d22;overflow-x:auto}nav button.active{border-color:#4ee0a1;color:#4ee0a1}.tab{display:none;padding:12px}.tab.active{display:block}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}.toolbar label{display:flex;align-items:center;gap:6px}.short{width:92px}.monitorInfo{display:flex;gap:18px;flex-wrap:wrap;color:#9bb1bc;font-size:13px;margin:0 0 8px 2px}.monitorInfo b{color:#e8eef2}.tablewrap{height:calc(100vh - 222px);min-height:320px;overflow:auto;border:1px solid #2e3b42;border-radius:9px;background:#151d22}table{width:100%;border-collapse:collapse;font-family:ui-monospace,Consolas,monospace;font-size:13px}th,td{padding:6px 8px;border-bottom:1px solid #26343a;text-align:left;white-space:nowrap}thead{position:sticky;top:0;background:#222d39;z-index:1}.RX{color:#75bfff}.TX{color:#70e2a8}.SIM{color:#bca7ff}.row-RX:hover,.row-TX:hover,.row-SIM:hover{background:#202b31}.byteCell{min-width:38px;text-align:center}.byteCell.changed{background:#714b27;color:#ffe2a8;box-shadow:inset 0 0 0 1px #a67237}.card{max-width:760px;background:#182126;border:1px solid #2e3b42;border-radius:10px;padding:18px}.wide{max-width:1080px}.card label{display:block;margin:12px 0}.card input,.card select{margin-left:8px}pre{white-space:pre-wrap;color:#9bb1bc}hr{border:0;border-top:1px solid #2e3b42;margin:18px 0}.formRow{display:flex;gap:18px;align-items:end;flex-wrap:wrap}.checks{align-items:center}.byteEditor{display:grid;grid-template-columns:repeat(8,minmax(52px,1fr));gap:8px;margin:18px 0}.byteEditor label{margin:0;color:#8fa4af;font-size:12px}.byteEditor input{display:block;width:100%;margin:5px 0 0;text-align:center;font-family:ui-monospace,Consolas,monospace;font-size:16px;text-transform:uppercase}.byteEditor label.disabled{opacity:.35}.primary{border-color:#4ee0a1;color:#4ee0a1;font-weight:700}.txCard{max-width:900px}.simAdd{display:grid;grid-template-columns:120px 1fr 130px auto;gap:8px;margin-bottom:10px}.simTable{height:38vh;min-height:260px}footer{position:fixed;bottom:0;left:0;right:0;display:flex;justify-content:space-between;background:#182126;border-top:1px solid #2e3b42;padding:7px 12px;color:#8fa4af;font-size:12px;z-index:3}@media(max-width:1050px){.topbar{align-items:flex-start}.statusPills{justify-content:flex-start}.tablewrap{height:calc(100vh - 270px)}}@media(max-width:760px){.topbar{display:block}.statusPills{margin-top:10px}.byteEditor{grid-template-columns:repeat(4,1fr)}.simAdd{grid-template-columns:1fr 1fr}.tablewrap{height:58vh}}@media(max-width:520px){.tab{padding:8px}.simAdd{grid-template-columns:1fr}.pill{font-size:12px;padding:6px 8px}}
+.filterPanel{margin:.45rem 0;border:1px solid #33414d;border-radius:8px;background:#141c22}.filterPanel summary{cursor:pointer;padding:.55rem .75rem;color:#9fc3d8}.filterPanel[open] summary{border-bottom:1px solid #33414d}.tiny{width:4.5rem}.newPacket{box-shadow:inset 3px 0 0 #46d99a;background:rgba(70,217,154,.06)}#labelRows td,#decodedList td{vertical-align:middle}.labelEdit{padding:.25rem .55rem}.toolbar span{color:#9fc3d8}.toolbar input[type=file]{display:none}
+.decodedEditorWrap{height:calc(100vh - 230px)}.decodedEditor th,.decodedEditor td{padding:4px}.decodedEditor .decodedInput{width:100%;min-width:48px;padding:7px 6px;border-radius:5px;font-family:ui-monospace,Consolas,monospace}.decodedEditor .labelInput{min-width:150px;font-family:system-ui,sans-serif}.decodedEditor .idInput{min-width:100px;text-align:center}.decodedEditor .byteInput{width:48px;text-align:center;text-transform:uppercase}.decodedEditor .dlcInput{width:58px;text-align:center}.decodedEditor .miniSelect{width:62px;padding:7px 4px}.decodedEditor tr.selectedRow{background:#24496a;box-shadow:inset 3px 0 0 #4ee0a1}.hint{color:#8fa4af;font-size:12px;margin:7px 2px}#decodedResult{color:#9fc3d8;font-weight:600}
+
+/* V0.10.4: feine Auswahl, blaue Decoded-Markierung und Dropdowns für kleine Zahlenbereiche */
+#decodedFrames tr.overviewRow{cursor:pointer;outline:1px solid transparent;outline-offset:-2px}
+#decodedFrames tr.overviewRow:hover{background:#1b2a33}
+#decodedFrames tr.overviewRow.selectedOverview{background:rgba(78,224,161,.035);outline:1px solid rgba(78,224,161,.72);outline-offset:-2px}
+#decodedFrames tr.overviewRow.selectedOverview td:first-child{font-weight:600;color:#8fe9c2}
+
+/* V0.10.4: Altersfilter als Button/Dropdown */
+#ageToggle.activeToggle{background:#1f6f55;border-color:#46d99a;color:#fff}
+#maxAge{width:4.6rem}
+
+
+/* V0.10.5: Label-Wörterbuch nutzt die volle Breite; Zahlen-Spinner wurden durch Dropdowns ersetzt. */
+.labelCard{width:100%;max-width:none}
+#labels .tablewrap{width:100%;height:calc(100vh - 265px)}
+#labels table{min-width:900px}
+#txInterval{min-width:110px;margin-left:8px}
+#simMs{width:145px}
+
+.toggleButton{min-width:112px}.toggleButton.active{border-color:#4ee0a1;color:#4ee0a1;background:rgba(78,224,161,.10);box-shadow:inset 0 0 0 1px rgba(78,224,161,.18)}
+
+
+/* V0.10.7: ausgerichtete Monitor-Schalter und rote Update-Blitze */
+#monitor > .toolbar{
+  display:grid;
+  grid-template-columns:auto auto minmax(180px,1.35fr) 92px 92px minmax(145px,auto) minmax(125px,auto) minmax(105px,auto) minmax(560px,2.5fr);
+  align-items:center;
+  gap:8px;
+}
+#monitor > .toolbar > button,
+#monitor > .toolbar > input,
+#monitor > .toolbar > select,
+#monitor .monitorToggles > button{
+  height:42px;
+  margin:0;
+}
+.monitorToggles{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(125px,1fr));
+  align-items:stretch;
+  gap:6px;
+  min-width:0;
+}
+.monitorToggle{
+  width:100%;
+  min-width:0;
+  padding:8px 10px;
+  white-space:nowrap;
+  font-size:14px;
+}
+@keyframes deacsPacketFlash{
+  0%{background:rgba(255,42,42,.78);box-shadow:inset 0 0 0 1px rgba(255,155,155,.95)}
+  35%{background:rgba(255,42,42,.40)}
+  100%{background:transparent;box-shadow:none}
+}
+@keyframes deacsDataFlash{
+  0%{background:#d71920;color:#fff;box-shadow:inset 0 0 0 1px #ff8b8f}
+  40%{background:#8e171c;color:#fff}
+  100%{background:transparent;color:inherit;box-shadow:none}
+}
+#frames tr.packetFlash{animation:deacsPacketFlash .48s ease-out both}
+#frames td.dataFlash{animation:deacsDataFlash .58s ease-out both}
+@media(max-width:1500px){
+  #monitor > .toolbar{grid-template-columns:auto auto minmax(180px,1fr) 92px 92px minmax(140px,auto) minmax(120px,auto) minmax(105px,auto)}
+  .monitorToggles{grid-column:1/-1;grid-template-columns:repeat(4,minmax(150px,1fr))}
+}
+@media(max-width:760px){
+  #monitor > .toolbar{display:flex;align-items:stretch}
+  .monitorToggles{display:grid;width:100%;grid-template-columns:repeat(2,1fr)}
+}
+
+
+/* V0.10.8: Analyse-Schalter in der Übersicht, gezieltes Blitzen und einheitliche Tabellenauswahl */
+.overviewToolbar{align-items:center}
+.overviewToolbar #decoderSearch{min-width:260px}
+#decodedFrames tr.overviewPacketFlash{animation:deacsOverviewPacketFlash .48s ease-out both}
+#decodedFrames td.overviewDataFlash{animation:deacsOverviewDataFlash .58s ease-out both;position:relative;z-index:1}
+@keyframes deacsOverviewPacketFlash{
+  0%{background:rgba(220,32,39,.78);box-shadow:inset 0 0 0 1px rgba(255,150,154,.95)}
+  38%{background:rgba(165,27,33,.42)}
+  100%{background:inherit;box-shadow:inherit}
+}
+@keyframes deacsOverviewDataFlash{
+  0%{background:#e02028;color:#fff;box-shadow:inset 0 0 0 1px #ff9a9e}
+  42%{background:#94171d;color:#fff}
+  100%{background:transparent;color:inherit;box-shadow:none}
+}
+#labelRows tr.labelRow{cursor:pointer;outline:1px solid transparent;outline-offset:-2px}
+#labelRows tr.labelRow:hover{background:#1b2a33}
+#labelRows tr.selectedLabelRow{background:rgba(78,224,161,.06);outline:1px solid rgba(78,224,161,.75);outline-offset:-2px}
+#labelRows tr.selectedLabelRow td:first-child{color:#8fe9c2;font-weight:700}
+#labels .toolbar #labelId{min-width:220px}
+#labels .toolbar #labelText{min-width:320px}
+@media(max-width:1100px){.overviewToolbar #decoderSearch{min-width:180px}}
+
+
+/* V0.10.9: kompakter Auto-Scroll rechts und zuverlässiger Datenblitz */
+#monitor > .toolbar{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px;
+}
+#monitor > .toolbar > input#search{flex:1 1 260px;min-width:200px}
+#monitor > .toolbar > #autoscroll{
+  margin-left:auto;
+  width:auto;
+  min-width:132px;
+  padding:8px 12px;
+}
+@media(max-width:900px){
+  #monitor > .toolbar > #autoscroll{margin-left:0}
+}
+
+button:disabled{opacity:.42;cursor:not-allowed;border-color:#344350;color:#87949c}
+
+
+/* V0.11.3: zentrierte Tabellenköpfe, klarer Datenblitz und einzelner Simulator-Schalter */
+th{text-align:center;vertical-align:middle}
+#decodedFrames td:not(:nth-child(2)),#simRows td{text-align:center}
+#decodedFrames td:nth-child(2){text-align:left}
+#simToggle{min-width:128px}
+#simToggle.active{border-color:#ef6268;color:#ffd7d9;background:rgba(170,32,39,.18)}
+#decodedFrames td.overviewDataFlash{
+  animation:none;
+  background:#a82028 !important;
+  color:#fff !important;
+  box-shadow:inset 0 0 0 1px #ff7a80,0 0 8px rgba(255,55,65,.6);
+}
+
+#decodedFrames .decodedLabelBadge{display:block;padding:3px 8px;background:rgba(58,139,253,.13);border:1px solid rgba(75,156,255,.58);border-radius:7px;color:#c7ddff;font-weight:600;transition:background .18s,border-color .18s}
+#hideIds.filterActive{border-color:#4ee0a1;box-shadow:0 0 0 1px rgba(78,224,161,.55) inset}
+
+
+/* V0.11.5: reduzierte Renderlast und weichere Decoder-Markierung */
+#decodedFrames tr.overviewPacketFlash{animation:deacsOverviewPacketFlashLight .55s ease-out both}
+@keyframes deacsOverviewPacketFlashLight{
+  0%{background:rgba(210,38,45,.55)}
+  55%{background:rgba(130,28,33,.22)}
+  100%{background:inherit}
+}
+
+/* V0.11.6: Decoder-Markierung auch im Monitor und Framezähler-Blitz */
+#frames .decodedMonitorBadge{
+  display:inline-block;
+  padding:2px 7px;
+  background:rgba(58,139,253,.13);
+  border:1px solid rgba(75,156,255,.58);
+  border-radius:7px;
+  color:#c7ddff;
+  transition:background .18s,border-color .18s;
+}
+#decodedFrames td.overviewFramesFlash{
+  background:#a82028 !important;
+  color:#fff !important;
+  box-shadow:inset 0 0 0 1px #ff7a80,0 0 8px rgba(255,55,65,.55);
+}
+
+
+/* V0.11.9: kompakte Einstellungen und einfacher Server-ID-Filter */
+.settingsCard{width:100%;max-width:1100px}
+.settingsRow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.settingsRow label{display:flex;align-items:center;gap:8px;margin:0}
+.settingsRow input,.settingsRow select{margin:0;height:42px}
+.settingsRow button{height:42px;margin:0}
+.serverFilterIdsLabel{flex:1 1 360px}
+#filterIds{width:100%;min-width:280px}
+.statusDetails{margin-top:16px;border-top:1px solid #2e3b42;padding-top:12px}
+.statusDetails summary{cursor:pointer;color:#9fc3d8}
+#decodedFrames td.overviewFramesNew{color:#ff4a50!important;font-weight:800;background:transparent!important;box-shadow:none!important}
+#decodedFrames td.overviewFramesFlash{background:transparent!important;color:inherit!important;box-shadow:none!important}
+@media(max-width:760px){.settingsRow{align-items:stretch}.settingsRow label,.serverFilterIdsLabel{width:100%}#filterIds{min-width:0}}
+
+.logStatusGrid{display:grid;grid-template-columns:max-content minmax(180px,1fr);gap:.5rem 1rem;align-items:center;margin:1rem 0}.logStatusGrid span{opacity:.75}.logStatusGrid b{overflow-wrap:anywhere}.logActive{color:#56d68b}.logError{color:#ff6b6b;min-height:1.2em}
+
+/* V0.11.9: Neue Pakete markiert ausschließlich die Frames-Zahl. */
+#decodedFrames td.overviewFramesNew{
+  color:#ff454d !important;
+  font-weight:800 !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+
+
+/* V0.11.11: Frames-Zahl blitzt bei jedem neu empfangenen Paket. */
+@keyframes deacsFramesNumberFlash{
+  0%{color:#ff454d;font-weight:800}
+  55%{color:#ff454d;font-weight:800}
+  100%{color:inherit;font-weight:inherit}
+}
+#decodedFrames td.overviewFramesNew{
+  background:transparent !important;
+  box-shadow:none !important;
+  animation:deacsFramesNumberFlash .40s ease-out both;
+}
+
+
+/* V0.11.14: einheitliche Log-Aktionen, DEACS-Meldungen und Dialoge */
+.logActions{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin:18px 0 12px}
+.logActionGroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 12px;border:1px solid #33414d;border-radius:9px;background:#141c22}
+.logActionGroup .actionLabel{width:100%;font-size:11px;line-height:1;text-transform:uppercase;letter-spacing:.08em;color:#829aa7}
+.logActionGroup button{height:42px;margin:0;min-width:128px}
+.logDangerGroup{margin-left:auto}
+.dangerButton:not(:disabled){border-color:#8e3338;color:#ffb7ba;background:rgba(168,32,40,.10)}
+.dangerButton:not(:disabled):hover{background:rgba(168,32,40,.22);border-color:#c84b52}
+.appNotice{position:fixed;right:22px;bottom:54px;z-index:40;display:flex;align-items:center;gap:10px;max-width:min(520px,calc(100vw - 32px));padding:13px 14px;border:1px solid #3c5360;border-radius:10px;background:#18242b;color:#dce9ef;box-shadow:0 14px 38px rgba(0,0,0,.38);opacity:0;transform:translateY(14px);pointer-events:none;transition:opacity .18s ease,transform .18s ease}
+.appNotice.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+.appNotice .noticeIcon{display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:#2b6b55;color:#d9fff0;font-weight:800;flex:0 0 auto}
+.appNotice.warning .noticeIcon{background:#7a5d1f;color:#fff2c2}.appNotice.warning .noticeIcon::before{content:'!';font-size:0}.appNotice.error .noticeIcon{background:#8f2d34;color:#ffe2e4}.appNotice.info .noticeIcon{background:#285e86;color:#ddebff}
+.appNotice button{border:0;background:transparent;color:#9fb1bb;font-size:22px;line-height:1;padding:0 2px;margin-left:auto;min-width:24px}
+.appDialog{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:20px;background:rgba(4,9,12,.72);backdrop-filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .16s ease}
+.appDialog.visible{opacity:1;pointer-events:auto}
+.dialogCard{width:min(470px,100%);padding:22px;border:1px solid #3a4b55;border-radius:12px;background:#182126;box-shadow:0 24px 70px rgba(0,0,0,.55);transform:scale(.97);transition:transform .16s ease}
+.appDialog.visible .dialogCard{transform:scale(1)}
+.dialogCard h3{margin:0 0 10px;color:#e7f1f5;font-size:19px}.dialogCard p{margin:0;color:#afc0c9;line-height:1.5}
+.dialogActions{display:flex;justify-content:flex-end;gap:9px;margin-top:22px}.dialogActions button{min-width:112px;height:42px}
+@media(max-width:760px){.logActions{align-items:stretch}.logActionGroup{width:100%}.logActionGroup button{flex:1 1 130px}.logDangerGroup{margin-left:0}.appNotice{right:16px;left:16px;bottom:52px;max-width:none}}
+
+
+/* V0.11.15: Importinformationen und neu ausgerichteter TX-Bereich */
+.sectionHeader{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}.sectionHeader h2{margin:0}.sectionSubtitle{margin:5px 0 0;color:#8fa4af;font-size:14px}
+.txCard{max-width:1080px}.txPanel{position:relative;border:1px solid #30404a;border-radius:10px;background:#151d22;padding:22px 16px 16px;margin-top:18px}.txPanelTitle{position:absolute;top:-10px;left:13px;padding:0 8px;background:#182126;color:#83a8bc;font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.txFrameGrid{display:grid;grid-template-columns:minmax(220px,1fr) 130px;gap:14px;max-width:520px}.txFrameGrid label,.txIntervalLabel{display:flex;align-items:center;gap:10px;margin:0}.txFrameGrid label span{min-width:34px;color:#b4c5ce}.txFrameGrid input,.txFrameGrid select,.txIntervalLabel select{margin:0;height:44px}.txFrameGrid input{width:100%;font-family:ui-monospace,Consolas,monospace;font-size:16px;text-transform:uppercase}.txFrameGrid select{width:82px}
+.txPanel .byteEditor{margin:0;grid-template-columns:repeat(8,minmax(72px,1fr));gap:10px}.txPanel .byteEditor input{height:48px;margin-top:7px}
+.txOptionsGrid{display:grid;grid-template-columns:repeat(3,minmax(145px,auto)) minmax(230px,1fr);gap:10px;align-items:center}.txOptionsGrid>button{height:44px;white-space:nowrap}.txIntervalLabel{justify-content:flex-end}.txIntervalLabel span:first-child{color:#b4c5ce}.txIntervalLabel select{width:110px}.txActionBar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}.txActionBar>button,.txCycleActions button{min-height:44px}.txCycleActions{display:flex;gap:8px}.txResult{min-height:0;margin:12px 2px 0}.txResult:empty{display:none}
+.importInfo{margin:18px 0;border:1px solid #2e594c;border-radius:10px;background:#14231f;overflow:hidden}.importInfo.empty{border-color:#30404a;background:#151d22}.importInfoHeader{display:flex;justify-content:space-between;gap:12px;padding:11px 14px;border-bottom:1px solid #2e594c;color:#8fb7a9;font-size:12px;letter-spacing:.08em;text-transform:uppercase}.importInfo.empty .importInfoHeader{border-color:#30404a;color:#81949e}.importInfoHeader b{color:#4ee0a1;text-transform:none;letter-spacing:0}.importInfo.empty .importInfoHeader b{color:#8fa4af}.importInfoGrid{display:grid;grid-template-columns:110px minmax(0,1fr) 110px minmax(0,1fr);gap:9px 14px;padding:13px 14px}.importInfoGrid span{color:#8fa4af}.importInfoGrid b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e8eef2}
+@media(max-width:820px){.txPanel .byteEditor{grid-template-columns:repeat(4,1fr)}.txOptionsGrid{grid-template-columns:1fr 1fr}.txIntervalLabel{justify-content:flex-start}.importInfoGrid{grid-template-columns:100px minmax(0,1fr)}}
+@media(max-width:520px){.txFrameGrid,.txOptionsGrid{grid-template-columns:1fr}.txFrameGrid label{justify-content:space-between}.txFrameGrid select{width:120px}.txActionBar{align-items:stretch;flex-direction:column}.txActionBar>button,.txCycleActions,.txCycleActions button{width:100%}.importInfoHeader{align-items:flex-start;flex-direction:column}.importInfoGrid{grid-template-columns:1fr}.importInfoGrid span{margin-top:5px}}
+
+.diagnosticGrid{display:grid;grid-template-columns:minmax(150px,1fr) minmax(90px,auto);gap:7px 18px;max-width:620px;margin:14px 0;padding:14px;background:#151d22;border:1px solid #2e3b42;border-radius:9px}.diagnosticGrid span{color:#9bb1bc}.diagnosticGrid b{text-align:right;color:#e8eef2;font-family:ui-monospace,Consolas,monospace}.statusDetails pre{max-height:360px;overflow:auto;background:#11181c;border:1px solid #26343a;border-radius:8px;padding:12px}@media(max-width:520px){.diagnosticGrid{grid-template-columns:1fr auto;gap:6px 10px;padding:10px}}
+
+/* V0.12.0-TEST: erweiterte CAN-ID-Analyse */
+.overviewStatsTable th{white-space:nowrap}
+.overviewStatsTable td{white-space:nowrap;text-align:right}
+.overviewStatsTable td:nth-child(1),.overviewStatsTable td:nth-child(2){text-align:left}
+.overviewByte{min-width:52px}
+.overviewByte span{display:block;font-weight:700}
+.overviewByte small{display:block;font-size:10px;line-height:1.1;opacity:.62;font-weight:400}
+.overviewDelta span{display:block;font-weight:700}
+.overviewDelta small{display:block;font-size:10px;line-height:1.1;opacity:.62;font-weight:400;white-space:nowrap}
+
+
+/* V0.12.1-TEST: neue Framezahl beim Paket-Blitz klarer hervorheben. */
+@keyframes deacsFramesNumberFlashLarge{
+  0%{color:#ff454d;font-size:1.55em;font-weight:900;transform:scale(1.08)}
+  65%{color:#ff454d;font-size:1.55em;font-weight:900;transform:scale(1.08)}
+  100%{color:inherit;font-size:inherit;font-weight:inherit;transform:scale(1)}
+}
+#decodedFrames td.overviewFramesNew{
+  animation:deacsFramesNumberFlashLarge .52s ease-out both !important;
+  transform-origin:center;
+}
+
+/* V0.12.5-TEST: kompakter Log-Tab ohne vertikales Scrollen auf Desktop. */
+#logs{padding:10px 12px}
+#logs .logCard{width:100%;max-width:1240px;padding:12px 16px}
+#logs .logCard h2{margin:0 0 8px;font-size:20px;line-height:1.2}
+#logs .logStatusGrid{
+  grid-template-columns:max-content minmax(120px,1fr) max-content minmax(110px,1fr) max-content minmax(90px,1fr);
+  gap:5px 12px;
+  margin:7px 0 9px;
+  font-size:14px;
+}
+#logs .importInfo{margin:9px 0}
+#logs .importInfoHeader{padding:7px 11px}
+#logs .importInfoGrid{grid-template-columns:80px minmax(0,1.4fr) 82px minmax(0,1fr);gap:5px 11px;padding:8px 11px;font-size:14px}
+#logs .logActions{display:grid;grid-template-columns:minmax(260px,1fr) minmax(360px,1.35fr) minmax(190px,.7fr);gap:10px;margin:9px 0 7px}
+#logs .logActionGroup{padding:7px 9px;gap:7px;flex-wrap:nowrap}
+#logs .logActionGroup .actionLabel{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+#logs .logActionGroup button{height:38px;min-width:0;flex:1;padding:8px 10px}
+#logs .logDangerGroup{margin-left:0}
+#logs .logHints{display:grid;grid-template-columns:1fr 1fr;gap:14px;border-top:1px solid #2e3b42;padding-top:6px}
+#logs .logHints .hint{margin:0;font-size:11px;line-height:1.3}
+#logs .logError{margin:4px 0 0;min-height:1em;font-size:12px}
+@media(max-width:980px){
+  #logs .logStatusGrid{grid-template-columns:max-content minmax(120px,1fr) max-content minmax(100px,1fr)}
+  #logs .logActions{grid-template-columns:1fr 1fr}
+  #logs .logDangerGroup{grid-column:1/-1}
+}
+@media(max-width:760px){
+  #logs .logCard{padding:12px}
+  #logs .logStatusGrid{grid-template-columns:max-content minmax(0,1fr)}
+  #logs .importInfoGrid{grid-template-columns:90px minmax(0,1fr)}
+  #logs .logActions{display:flex;margin-top:10px}
+  #logs .logActionGroup{flex-wrap:wrap}
+  #logs .logActionGroup .actionLabel{position:static;width:100%;height:auto;overflow:visible;clip:auto}
+  #logs .logHints{grid-template-columns:1fr}
+}
+
+/* V0.12.5-TEST: drei kompakte Dateiaktionen nebeneinander. */
+#logs .logActions{grid-template-columns:minmax(250px,.9fr) minmax(540px,1.8fr) minmax(180px,.65fr)}
+#logs .logActionGroup button{white-space:nowrap}
+@media(max-width:1100px){#logs .logActions{grid-template-columns:1fr 1.7fr}#logs .logDangerGroup{grid-column:1/-1}}
+/* V0.12.4: kompakte Log-Bedienung */
+#logs .fileMenuWrap{position:relative;flex:1;display:flex}
+#logs #fileMenuToggle{width:100%}
+#logs .fileMenu{position:absolute;z-index:30;left:0;right:0;bottom:calc(100% + 6px);display:grid;gap:5px;padding:7px;border:1px solid #3b4b56;border-radius:9px;background:#172128;box-shadow:0 12px 30px rgba(0,0,0,.45)}
+#logs .fileMenu[hidden]{display:none}
+#logs .fileMenu button{width:100%;min-width:190px;text-align:left}
+#logs #logToggle.dangerButton{color:#ff9e9e;border-color:#9b3b4a;background:#26191d}
+
+/* V0.12.5 TX editor: frame and bytes in one line plus resend history */
+.txCard{max-width:1320px}
+.txFramePanel{padding-top:20px}
+.txFrameLine{display:grid;grid-template-columns:minmax(150px,1.25fr) 88px minmax(600px,5fr);gap:12px;align-items:end}
+.txFrameLine>label{margin:0;color:#b4c5ce;font-size:12px}
+.txFrameLine>label span{display:block;margin-bottom:7px}
+.txFrameLine input,.txFrameLine select{width:100%;height:48px;margin:0;font-family:ui-monospace,Consolas,monospace;font-size:16px;text-transform:uppercase}
+.txFrameLine .byteEditor{display:grid;grid-template-columns:repeat(8,minmax(54px,1fr));gap:8px;margin:0}
+.txFrameLine .byteEditor label{margin:0;color:#8fa4af;font-size:12px}
+.txFrameLine .byteEditor input{height:48px;margin:7px 0 0}
+.txHistory{margin-top:18px}
+.txHistoryHeader{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:0 2px 8px}
+.txHistoryHeader h3{margin:0;font-size:17px}
+.txHistoryHeader span{color:#8fa4af;font-size:12px}
+.txHistoryTable{height:auto;min-height:92px;max-height:280px}
+.txHistoryTable th,.txHistoryTable td{text-align:center}
+.txHistoryTable th:first-child,.txHistoryTable td:first-child{text-align:left}
+.txHistoryActions{display:flex;justify-content:center;gap:6px}
+.txHistoryActions button{padding:6px 9px;min-height:32px}
+.txHistoryEmpty td{padding:22px;text-align:center!important;color:#8fa4af}
+.txByteOff{color:#60717a}
+button.danger{border-color:#8e3944;color:#ff9da7}
+@media(max-width:1050px){.txFrameLine{grid-template-columns:minmax(150px,1fr) 88px}.txFrameLine .byteEditor{grid-column:1/-1}.txHistoryTable{overflow-x:auto}}
+@media(max-width:620px){.txFrameLine{grid-template-columns:1fr 90px}.txFrameLine .byteEditor{grid-template-columns:repeat(4,1fr)}.txHistoryHeader{align-items:flex-start;flex-direction:column}.txHistoryActions{flex-direction:column}}
+
+/* V0.12.6-TEST: TX-Aktionen direkt in der Frame-Zeile; Zyklus über einen Umschaltknopf. */
+.txFrameLine{grid-template-columns:minmax(150px,1.25fr) 88px minmax(600px,5fr) auto}
+.txFrameActions{display:flex;gap:8px;align-items:flex-end;padding-bottom:0}
+.txFrameActions button{height:48px;min-width:92px;white-space:nowrap}
+@media(max-width:1180px){.txFrameLine{grid-template-columns:minmax(150px,1fr) 88px}.txFrameLine .byteEditor{grid-column:1/-1}.txFrameActions{grid-column:1/-1;justify-content:flex-end}}
+@media(max-width:620px){.txFrameActions{justify-content:stretch}.txFrameActions button{flex:1}}
+
+.idFormatToggle{cursor:pointer;user-select:none;white-space:nowrap}.idFormatToggle:hover{text-decoration:underline}.idFormatToggle:focus{outline:none;background:rgba(78,224,161,.08)}
+
+.fileActionRow{display:flex;gap:10px;align-items:flex-start}.fileActionRow>button,.fileActionRow>.fileMenuWrap>button{min-width:110px}
+
+
+/* V0.12.15-TEST: aufgeräumte Log-Werkzeugleiste und klarer Exportdialog. */
+#logs .logToolbar{display:grid;grid-template-columns:repeat(4,minmax(145px,1fr));gap:10px;margin:12px 0 9px}
+#logs .logToolbar button{width:100%;height:42px;min-width:0;margin:0;white-space:nowrap}
+#logs .logToolbar #logClear{margin-left:0}
+.exportDialogCard{width:min(430px,100%)}
+.exportChoices{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.exportChoices button{height:48px;margin:0}
+@media(max-width:720px){#logs .logToolbar{grid-template-columns:1fr 1fr}.exportChoices{grid-template-columns:1fr}}
+@media(max-width:420px){#logs .logToolbar{grid-template-columns:1fr}}
+
+/* V0.12.16-TEST: kompakte Status- und Dateninformationen im Logs-Tab. */
+#logs .importInfoGrid{grid-template-columns:78px minmax(0,1.35fr) 76px minmax(0,1fr)}
+#logs .importInfoHeader b{white-space:nowrap}
+@media(max-width:820px){#logs .importInfoGrid{grid-template-columns:90px minmax(0,1fr)}}
+
+
+/* V0.12.17-TEST: Monitor-Auswahl, TX-Übernahme und verbessertes Auto-Scroll. */
+#monitor .monitorTable tbody tr{height:31px}
+#monitor .monitorTable tbody tr.monitorSelectedRow{background:#263943!important;box-shadow:inset 3px 0 0 #4ee0a1}
+#monitor .monitorTable tbody tr.monitorSelectedRow td{border-bottom-color:#3a515d}
+#monitor #scrollToEnd{border-color:#4ee0a1;color:#4ee0a1}
+#monitor #scrollToEnd[hidden]{display:none}
+#monitor thead th{outline:none}
+
+.txModeHint{margin:12px 0 2px;padding:10px 12px;border:1px solid #8b6a22;border-radius:9px;background:#2a2517;color:#ffd978;font-size:14px;font-weight:600}
+.txModeHint[hidden]{display:none}
+
+/* V0.12.20: TX validation */
+.inputInvalid{border-color:#ef5b67!important;box-shadow:0 0 0 1px rgba(239,91,103,.35)!important;}
+
+/* V0.12.21: klarer und sicherer TX-Zyklus */
+.txCycleStatus{margin-top:10px;padding:9px 12px;border:1px solid #2d9f73;border-radius:8px;background:#132b25;color:#55e6ad;font-weight:600}
+.txCycleStatus[hidden]{display:none}
+
+
+/* V0.12.22: TX-Verlauf bedienen */
+.txHistoryHeader{align-items:center}
+.txHistoryHeader>div{display:flex;align-items:baseline;gap:12px;min-width:0}
+.txHistoryHeader>div span{white-space:nowrap}
+#txHistoryClear{flex:0 0 auto;padding:7px 11px;min-height:34px}
+#txHistoryRows tr[data-history-index]{cursor:pointer}
+#txHistoryRows tr[data-history-index]:hover td{background:rgba(52,211,153,.07)}
+@media(max-width:620px){.txHistoryHeader>div{align-items:flex-start;flex-direction:column;gap:2px}.txHistoryHeader>div span{white-space:normal}}
+
+
+/* V0.12.26-TEST: TX-Verlauf Auswahl, Hervorhebung und Tabellenlayout. */
+.txHistoryTable table{table-layout:fixed;min-width:1120px}
+.txHistoryTable th:nth-child(1),.txHistoryTable td:nth-child(1){width:105px}
+.txHistoryTable th:nth-child(2),.txHistoryTable td:nth-child(2){width:52px;text-align:right}
+.txHistoryTable th:nth-child(n+3):nth-child(-n+10),.txHistoryTable td:nth-child(n+3):nth-child(-n+10){width:48px}
+.txHistoryTable th:nth-child(11),.txHistoryTable td:nth-child(11){width:92px}
+.txHistoryTable th:nth-child(12),.txHistoryTable td:nth-child(12){width:68px;text-align:right}
+.txHistoryTable th:nth-child(13),.txHistoryTable td:nth-child(13){width:92px}
+.txHistoryTable th:nth-child(14),.txHistoryTable td:nth-child(14){width:156px}
+.txHistoryByte{font-family:ui-monospace,Consolas,monospace}
+#txHistoryRows tr.txHistorySelected td{background:rgba(58,89,104,.42);box-shadow:inset 0 1px 0 rgba(93,141,161,.18),inset 0 -1px 0 rgba(93,141,161,.18)}
+#txHistoryRows tr.txHistorySelected td:first-child{box-shadow:inset 3px 0 0 #5d8da1,inset 0 1px 0 rgba(93,141,161,.18),inset 0 -1px 0 rgba(93,141,161,.18)}
+#txHistoryRows tr.txHistoryRecent td{animation:txHistoryRecentFlash 2s ease-out}
+@keyframes txHistoryRecentFlash{0%,45%{background:rgba(52,211,153,.28)}100%{background:transparent}}
+
+
+/* V0.12.27-TEST: Übersicht – Sortierung, stabile Auswahl und saubere Tabellenanzeige. */
+.overviewStatsTable{table-layout:auto}
+.overviewStatsTable th.sortableHeader{cursor:pointer;user-select:none}
+.overviewStatsTable th.sortableHeader:hover{background:rgba(255,255,255,.045)}
+.overviewStatsTable th.sortActive{color:#8fe9c2}
+.overviewStatsTable td:first-child,.overviewStatsTable td:nth-child(n+7):nth-child(-n+14){font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
+.overviewStatsTable td:first-child{min-width:82px}
+.overviewStatsTable td:nth-child(2){min-width:150px;max-width:280px;overflow:hidden;text-overflow:ellipsis}
+.overviewStatsTable td:nth-child(n+7):nth-child(-n+14){min-width:44px;text-align:center}
+
+/* V0.12.28-TEST: Simulator-Dateneingabe wird live als Bytes formatiert und geprüft. */
+#simData{font-family:ui-monospace,Consolas,monospace;text-transform:uppercase;letter-spacing:.02em}
+#simData.simDataIncomplete{border-color:#c99a35;box-shadow:0 0 0 1px rgba(201,154,53,.35)}
+
+
+/* V0.12.29-TEST: sichtbare Simulator-Datenquelle für ESP32 und lokalen Browserbetrieb. */
+.simTitleRow{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.simTitleRow h2{margin-bottom:0}
+.simBackendState{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:.95rem}
+.simBackendBadge{display:inline-flex;align-items:center;min-width:78px;justify-content:center;padding:5px 10px;border:1px solid var(--border);border-radius:999px;font-weight:700}
+.simBackendBadge.esp32{color:var(--green);border-color:var(--green);background:rgba(45,212,153,.08)}
+.simBackendBadge.browser{color:#f4c96b;border-color:#8b6b22;background:rgba(139,107,34,.12)}
+
+.simBrowserStatus{margin-top:12px;padding:9px 12px;border:1px solid var(--border);border-radius:8px;color:var(--muted);background:rgba(255,255,255,.025)}
+.simBrowserStatus.active{color:var(--green);border-color:rgba(45,212,153,.45);background:rgba(45,212,153,.07)}
+.simInvalidRow{opacity:.58}
+
+.simStats{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}.simStats span{padding:7px 10px;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.025);color:var(--muted)}.simStats b{color:var(--text)}.simEmptyHint{margin:10px 0;padding:10px 12px;border:1px dashed var(--border);border-radius:8px;color:var(--muted)}.simActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0}.simEmptyRow td{text-align:center;color:var(--muted);padding:24px}.simActions button:disabled{opacity:.45;cursor:not-allowed}
+
+/* V0.12.34 Simulator compact layout */
+.simCard{padding-top:14px}.simTitleRow{margin-bottom:8px}.simTitleRow h2{margin:0}.simSafetyHint{margin-top:3px;color:var(--muted);font-size:.78rem;letter-spacing:.01em}.simBackendState{font-size:.82rem;opacity:.9}.simBackendBadge{min-width:68px;padding:3px 8px;font-size:.78rem}.simToolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:8px 0}.simActions{margin:0}.simStats{margin:0;gap:6px}.simStats span{padding:5px 8px;font-size:.78rem}.simStats b{margin-left:4px}.simTable{height:46vh;min-height:300px}.simBrowserStatus{margin-top:7px;padding:6px 9px;font-size:.78rem}.simDragCol{width:34px}.simDragCell{width:34px;padding-left:4px;padding-right:4px}.simDragHandle{border:0;background:transparent;padding:4px 6px;color:var(--muted);cursor:grab;font-size:15px;line-height:1}.simDragHandle:active{cursor:grabbing}.simDragging{opacity:.38}.simDropTarget{box-shadow:inset 0 2px 0 var(--green)}@media(max-width:760px){.simToolbar{align-items:flex-start}.simStats{width:100%}}
+
+
+/* V0.12.35-TEST: flüssigere Live-Anzeige und gezielte Hervorhebung. */
+#decodedFrames tr.overviewNewId td{animation:overviewNewIdFlash .9s ease-out both}
+@keyframes overviewNewIdFlash{0%{background:rgba(78,224,161,.22)}100%{background:transparent}}
+#monitor .monitorTable tbody,#decoded .overviewStatsTable tbody{contain:layout paint style}
+
+
+/* V0.12.36-TEST: Random-Simulator und einheitliche TX-Bedienfelder. */
+#simRandom.active{border-color:#f4c96b;color:#f4c96b;font-weight:700}
+.txFrameActions button{width:96px;min-width:96px;height:48px;padding:0 10px}
+.txOptionsGrid>button,.txIntervalLabel{height:44px}
+.txIntervalLabel select{height:44px}
+.txHistoryActions{min-width:174px;align-items:center}
+.txHistoryActions button{width:82px;min-width:82px;height:34px;min-height:34px;padding:0 8px}
+.txHistoryTable tbody tr{height:46px}
+.txHistoryTable td{vertical-align:middle}
+@media(max-width:620px){.txHistoryActions{min-width:88px}.txHistoryActions button{width:88px}}
+
+/* V0.12.37-TEST: Änderungsmarkierungen ausschließlich in der Übersicht; Monitor bleibt Rohdatenstrom. */
+
+/* V0.12.38-TEST: kompakte, aufklappbare Random-Einstellungen. */
+.simRandomOptions{margin:7px 0 9px;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.018)}
+.simRandomOptions summary{cursor:pointer;padding:7px 10px;color:var(--muted);font-size:.8rem;user-select:none}
+.simRandomOptions[open] summary{border-bottom:1px solid var(--border)}
+.simRandomGrid{display:grid;grid-template-columns:150px 110px 130px 130px 140px;gap:8px;padding:9px 10px}
+.simRandomGrid label{display:flex;flex-direction:column;gap:4px;margin:0;color:var(--muted);font-size:.75rem}
+.simRandomGrid input,.simRandomGrid select{width:100%;height:34px;margin:0;padding:6px 8px;font-family:ui-monospace,Consolas,monospace}
+@media(max-width:760px){.simRandomGrid{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.simRandomGrid{grid-template-columns:1fr}}
+
+/* V0.12.40: kompakte, generatorabhängige Zusatzoptionen */
+.simGeneratorExtras{display:flex;align-items:end;flex-wrap:wrap;gap:8px;padding:0 10px 9px}
+.simGeneratorExtras label{display:none;flex-direction:column;gap:4px;min-width:120px;margin:0;color:var(--muted);font-size:.75rem}
+.simGeneratorExtras label.visible{display:flex}
+.simGeneratorExtras input,.simGeneratorExtras select{width:100%;height:34px;margin:0;padding:6px 8px;font-family:ui-monospace,Consolas,monospace}
+.simGeneratorNoExtras{display:none;align-self:center;color:var(--muted);font-size:.75rem;padding:7px 0}
+.simGeneratorNoExtras.visible{display:inline}
+
+.simGeneratorFrame{display:grid;grid-template-columns:minmax(260px,1.2fr) minmax(300px,1fr) minmax(280px,1fr);gap:10px;padding:0 10px 10px;align-items:end}
+.simGeneratorFrame>label,.simByteMask,.simGeneratorPreview{display:flex;flex-direction:column;gap:5px;color:var(--muted);font-size:.75rem}
+.simGeneratorFrame input{height:34px;margin:0;padding:6px 8px;font-family:ui-monospace,Consolas,monospace}
+#simGenMask{display:flex;flex-wrap:wrap;gap:5px}
+#simGenMask label{display:flex;align-items:center;gap:3px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;background:rgba(255,255,255,.018);color:var(--text);font-size:.75rem}
+#simGenMask input{width:auto;height:auto;margin:0}
+.simGeneratorPreview code{display:block;min-height:34px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;background:rgba(0,0,0,.18);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.overviewGeneratorAction{padding-left:5px!important;text-align:center!important}
+.overviewToGenerator{min-width:48px;height:28px;padding:3px 7px;font-size:.72rem;white-space:nowrap}
+@media(max-width:1100px){.simGeneratorFrame{grid-template-columns:1fr}.simGeneratorPreview code{white-space:normal}}
+
+/* V0.12.42-TEST: Simulator und Generator klar getrennt und kompakter. */
+.simRandomOptions{border-left:3px solid #3b82f6;background:rgba(59,130,246,.035)}
+.simRandomOptions summary{color:#9ec5ff;font-weight:600;padding:9px 11px}
+.simGeneratorToolbar{display:flex;align-items:center;gap:10px;padding:9px 10px 0}
+.simGeneratorToolbar span{font-size:.74rem;color:var(--muted)}
+.generatorButton{border-color:rgba(59,130,246,.7);color:#b9d5ff}
+.generatorButton:hover{background:rgba(59,130,246,.12)}
+.simGeneratorFrame{grid-template-columns:minmax(320px,1.5fr) minmax(390px,1fr);align-items:end}
+.simBaseDataLabel{grid-column:1}
+.simByteMask{grid-column:2}
+.simGeneratorPreview{grid-column:1/-1;display:grid!important;grid-template-columns:auto 1fr;align-items:center;gap:8px!important;padding-top:1px}
+.simGeneratorPreview code{min-height:auto;padding:4px 0;border:0;background:transparent;overflow:visible;text-overflow:clip}
+#simGenMask{flex-wrap:nowrap;gap:4px}
+#simGenMask label{padding:4px 5px;white-space:nowrap}
+@media(max-width:900px){.simGeneratorFrame{grid-template-columns:1fr}.simBaseDataLabel,.simByteMask,.simGeneratorPreview{grid-column:1}.simGeneratorPreview{grid-template-columns:1fr}.simGeneratorToolbar{align-items:flex-start;flex-direction:column}}
+
+
+/* V0.12.43: kompakte Frame-Aktionen und benannte Simulator-Einträge */
+.overviewFrameActions,.simRowActions{position:relative;width:44px;text-align:center;overflow:visible!important}
+.rowActionMenu{position:relative;display:inline-block}
+.rowActionMenu>summary{list-style:none;cursor:pointer;display:grid;place-items:center;width:34px;height:32px;border:1px solid #344754;border-radius:8px;background:#1b2730;color:#d7e4ea;font-size:20px;line-height:1;user-select:none}
+.rowActionMenu>summary::-webkit-details-marker{display:none}
+.rowActionMenu[open]>summary{border-color:#4e91bd;background:#203848}
+.rowActionMenu>div{position:absolute;right:0;top:38px;z-index:30;display:grid;min-width:210px;padding:6px;border:1px solid #3a4d59;border-radius:9px;background:#172128;box-shadow:0 12px 30px rgba(0,0,0,.42)}
+.rowActionMenu>div button{height:36px;margin:0;padding:0 11px;border:0;background:transparent;text-align:left;white-space:nowrap}
+.rowActionMenu>div button:hover{background:#243641}
+.rowActionMenu>div button.danger{color:#ff9da2}
+.simNameInput{width:150px;min-width:110px;height:34px;padding:5px 8px;margin:0;background:#142028;border-color:transparent}
+.simNameInput:focus{border-color:#4c91bd;background:#182832}
+.simDataCell{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;white-space:nowrap}
+.simSourceBadge{display:inline-block;min-width:38px;padding:3px 7px;border:1px solid #3f5968;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:.04em;color:#bdd0d9;background:#1d2b33}
+.simSourceBadge.rx{border-color:#417aa0;color:#b9ddf4;background:#182d3a}
+.simSourceBadge.sim{border-color:#328464;color:#b8f2d8;background:#173329}
+.simTable{overflow:auto;max-height:calc(100vh - 360px)}
+@media(max-width:900px){.simNameInput{width:110px}.rowActionMenu>div{right:-4px}}
+
+/* V0.12.44: einheitliche ID-/Label-Reihenfolge, Zeilenauswahl und Simulator-Scroll */
+.simTable{overflow:auto!important;overscroll-behavior:contain;scrollbar-gutter:stable}
+.simTable thead{z-index:3}
+.simSelectedRow,.csvSelectedRow{background:#24496a!important;box-shadow:inset 3px 0 0 #4ee0a1}
+th,td{vertical-align:middle}
+#frames th:nth-child(4),#frames td:nth-child(4),
+#decodedFrames th:nth-child(1),#decodedFrames td:nth-child(1),
+#labelRows td:nth-child(1),
+#txHistoryRows td:nth-child(1),
+#simRows td:nth-child(3){text-align:left}
+#frames th:nth-child(5),#frames td:nth-child(5),
+#decodedFrames th:nth-child(2),#decodedFrames td:nth-child(2),
+#labelRows td:nth-child(2),
+#txHistoryRows td:nth-child(2),
+#simRows td:nth-child(4){text-align:left}
+.txHistoryTable table{min-width:1220px}
+.txHistoryTable th:nth-child(1),.txHistoryTable td:nth-child(1){width:105px}
+.txHistoryTable th:nth-child(2),.txHistoryTable td:nth-child(2){width:150px;text-align:left}
+.txHistoryTable th:nth-child(3),.txHistoryTable td:nth-child(3){width:52px;text-align:right}
+.txHistoryTable th:nth-child(n+4):nth-child(-n+11),.txHistoryTable td:nth-child(n+4):nth-child(-n+11){width:48px}
+.txHistoryTable th:nth-child(12),.txHistoryTable td:nth-child(12){width:92px}
+.txHistoryTable th:nth-child(13),.txHistoryTable td:nth-child(13){width:68px;text-align:right}
+.txHistoryTable th:nth-child(14),.txHistoryTable td:nth-child(14){width:92px}
+.txHistoryTable th:nth-child(15),.txHistoryTable td:nth-child(15){width:156px}
+
+/* V0.12.45: Generator-Frames eindeutig als GEN kennzeichnen */
+.GEN{color:#70b7ff}
+.row-GEN:hover{background:#202b31}
+.simSourceBadge.gen{border-color:#3b78a8;color:#b9dcff;background:#172c3b}
+
+/* V0.12.46: Quellenanzeige und Simulator-Ausrichtung */
+.sourceBadge{display:inline-flex;align-items:center;justify-content:center;min-width:34px;padding:2px 6px;border-radius:999px;border:1px solid var(--border);font-size:.72rem;font-weight:700;line-height:1.1}.sourceBadge.rx{color:#8fd3ff;border-color:#2877a6;background:rgba(40,119,166,.14)}.sourceBadge.tx{color:#ffd58f;border-color:#9c6d22;background:rgba(156,109,34,.14)}.sourceBadge.sim{color:#7ef0b8;border-color:#1b8a5b;background:rgba(27,138,91,.14)}.sourceBadge.gen{color:#a9bfff;border-color:#4269c8;background:rgba(66,105,200,.14)}.simToolbar{align-items:center}.simActions,.simStats{min-height:40px;align-items:center}
+
+
+/* V0.12.47: DEACS-Aufräumrunde */
+.asciiCell{min-width:92px;letter-spacing:.08em;color:#aebfc8}
+.decodedEditor .decodedInput{background:transparent;border-color:transparent;box-shadow:none}
+.decodedEditor tr:hover .decodedInput{background:#1d282f;border-color:#31414b}
+.decodedEditor .decodedInput:focus{background:#202a34;border-color:#4ee0a1;outline:none}
+.decodedEditor tr.selectedRow{background:#203844;box-shadow:inset 3px 0 0 #4ee0a1}
+.decodedEditor th,.decodedEditor td{border-left:0;border-right:0}
+.decodedEditor .miniSelect{appearance:auto}
+.monitorTable td:nth-child(1),.monitorTable td:nth-child(2){font-weight:600}
+
+
+/* V0.12.48: ruhige DEACS-Tabellenoptik ohne zusätzliche Kästchen */
+.sourceText{
+  display:inline-block;
+  min-width:32px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  font-size:.76rem;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+.sourceText.rx{color:#75bfff}.sourceText.tx{color:#70e2a8}.sourceText.sim{color:#bca7ff}.sourceText.gen{color:#70b7ff}
+
+/* Tabellenaktionen erst bei Bedarf hervorheben. */
+.rowActionMenu>summary{
+  border-color:transparent;
+  background:transparent;
+  color:#91a7b2;
+}
+tr:hover .rowActionMenu>summary,.rowActionMenu>summary:focus-visible{
+  border-color:#344754;
+  background:#1b2730;
+  color:#d7e4ea;
+}
+
+/* Simulator wie die Übersicht: Inhalte direkt in der Zeile, Eingaberahmen nur beim Bearbeiten. */
+.simNameInput{
+  background:transparent;
+  border-color:transparent;
+  box-shadow:none;
+}
+#simRows tr:hover .simNameInput{background:#1d282f;border-color:#31414b}
+.simNameInput:focus{background:#202a34;border-color:#4ee0a1;outline:none}
+.simSelectedRow,.csvSelectedRow{background:#203844!important;box-shadow:inset 3px 0 0 #4ee0a1}
+
+/* Statuszähler nicht mehr als einzelne Boxen darstellen. */
+.simStats{gap:0}
+.simStats span{
+  padding:0 10px;
+  border:0;
+  border-right:1px solid #2e3b42;
+  border-radius:0;
+  background:transparent;
+}
+.simStats span:first-child{padding-left:0}
+.simStats span:last-child{padding-right:0;border-right:0}
+
+/* Decoded bleibt editierbar, wirkt im Ruhezustand aber wie eine normale DEACS-Tabelle. */
+.decodedEditor .miniSelect{appearance:none;background-image:none;padding-right:6px}
+.decodedEditor tr:not(:hover):not(.selectedRow) .decodedInput{color:#dce7ec}
+.decodedEditor tr.selectedRow{background:#203844;box-shadow:inset 3px 0 0 #4ee0a1}
+
+/* Einheitliche ruhige Tabellenlinien wie in der Übersicht. */
+#decoded .tablewrap,#sim .simTable,#tx .txHistoryTable,#labels .tablewrap{border-color:#2e3b42}
+#decoded table td,#sim table td,#tx .txHistoryTable td,#labels table td{border-bottom-color:#26343a}
+
+/* V0.12.49-TEST: einheitliche DEACS-Tabellen und ruhige Ausrichtung */
+:root{
+  --deacs-table-head-height:30px;
+  --deacs-table-row-height:26px;
+}
+
+/* Tabellen bleiben im bestehenden DEACS-Stil, erhalten aber überall dieselben Maße. */
+table thead th{
+  height:var(--deacs-table-head-height);
+  padding:4px 8px;
+  background:#202a32;
+  border-top:0;
+  border-left:0;
+  border-right:0;
+  border-bottom:1px solid #34434b;
+  vertical-align:middle;
+  font-weight:650;
+}
+table tbody td{
+  height:var(--deacs-table-row-height);
+  padding:3px 8px;
+  border-left:0;
+  border-right:0;
+  vertical-align:middle;
+}
+table tbody tr:hover{background:#1b282f}
+
+/* Auswahl: nur Hintergrund und linke DEACS-Akzentlinie, kein zusätzlicher Rahmen. */
+#frames tr.monitorSelectedRow,
+#decodedFrames tr.selectedOverview,
+#decodedList tr.selectedRow,
+#labelRows tr.selectedLabelRow,
+#txHistoryRows tr.txHistorySelected,
+#simRows tr.simSelectedRow,
+.csvSelectedRow{
+  background:#203844!important;
+  outline:0!important;
+  box-shadow:inset 3px 0 0 #4ee0a1!important;
+}
+
+/* Wiederkehrende Inhalte überall gleich ausrichten. */
+.idFormatToggle,
+#frames th:first-child,#frames td:first-child,
+#decodedFrames th:first-child,#decodedFrames td:first-child,
+#decodedList th:first-child,#decodedList td:first-child,
+#labelRows td:first-child,
+#txHistoryRows td:first-child,
+#simRows td:nth-child(3){text-align:center}
+
+#frames th:nth-child(2),#frames td:nth-child(2),
+#decodedFrames th:nth-child(2),#decodedFrames td:nth-child(2),
+#decodedList th:nth-child(2),#decodedList td:nth-child(2),
+#labelRows td:nth-child(2),
+#txHistoryRows td:nth-child(2),
+#simRows td:nth-child(4){text-align:left}
+
+#frames td:first-child,#frames td:nth-child(n+7),
+#decodedFrames td:first-child,#decodedFrames .overviewByte,
+#decodedList td:first-child,#decodedList td:nth-child(n+4),
+#txHistoryRows td:first-child,#txHistoryRows td:nth-child(n+4):nth-child(-n+11),
+#simRows td:nth-child(3),#simRows .simDataCell,
+.asciiCell{
+  font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+}
+
+/* Zahlen rechts, Byte-/ID-Felder mittig. */
+#decodedFrames td:nth-child(4),
+#decodedFrames td:nth-child(5),
+#decodedFrames td:nth-child(6),
+#decodedFrames td:nth-child(7),
+#decodedFrames td:nth-child(16),
+#decodedFrames td:nth-child(17),
+#txHistoryRows td:nth-child(3),
+#txHistoryRows td:nth-child(13){text-align:right}
+
+/* Bearbeitungsfelder wirken im Ruhezustand wie Tabelleninhalt. */
+.decodedEditor .decodedInput,.simNameInput{
+  min-height:24px;
+  padding:2px 5px;
+  border:1px solid transparent;
+  border-radius:5px;
+  background:transparent;
+}
+.decodedEditor .decodedInput:focus,.simNameInput:focus{
+  border-color:#4ee0a1;
+  background:#202a34;
+  outline:0;
+}
+
+/* Einheitliche DEACS-Scrollleisten für alle Tabellenbereiche. */
+.tablewrap{
+  scrollbar-width:thin;
+  scrollbar-color:#445864 #151d22;
+}
+.tablewrap::-webkit-scrollbar{width:10px;height:10px}
+.tablewrap::-webkit-scrollbar-track{background:#151d22}
+.tablewrap::-webkit-scrollbar-thumb{background:#445864;border:2px solid #151d22;border-radius:8px}
+.tablewrap::-webkit-scrollbar-thumb:hover{background:#58707d}
+
+/* Quellen bleiben einfacher Text ohne Badge oder zusätzlichen Rahmen. */
+.sourceText,.sourceBadge,.simSourceBadge{
+  min-width:32px;
+  padding:0;
+  border:0!important;
+  border-radius:0;
+  background:transparent!important;
+  box-shadow:none;
+}
+
+
+/* V0.12.50-TEST: Simulator wie alle DEACS-Tabellen mit ID und Label beginnen */
+#sim .simTable th:nth-child(1),#sim .simTable td:nth-child(1){width:90px;text-align:center}
+#sim .simTable th:nth-child(2),#sim .simTable td:nth-child(2){min-width:170px;text-align:left}
+#sim .simTable th:nth-child(3),#sim .simTable td:nth-child(3){min-width:250px;text-align:left}
+#sim .simTable th:nth-child(4),#sim .simTable td:nth-child(4){width:95px;text-align:right}
+#sim .simTable th:nth-child(5),#sim .simTable td:nth-child(5){width:64px;text-align:center}
+#sim .simTable th:nth-child(6),#sim .simTable td:nth-child(6){width:72px;text-align:center}
+#sim .simTable th:nth-child(7),#sim .simTable td:nth-child(7){width:38px;text-align:center}
+#sim .simTable th:nth-child(8),#sim .simTable td:nth-child(8){width:42px;text-align:center}
+#simRows td:nth-child(1),#simRows td:nth-child(3){font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+#simRows .simDragHandle{opacity:.42;border-color:transparent;background:transparent}
+#simRows tr:hover .simDragHandle,#simRows .simDragHandle:focus{opacity:1;border-color:#3a4a52}
+
+/* V0.12.51-TEST: ruhige DEACS-Aufräumrunde nach Vorbild der Übersicht */
+/* Der Simulator nutzt keinen zusätzlichen äußeren Kartenrahmen mehr. */
+#sim .simCard{
+  max-width:none;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+}
+
+/* Status wird als dezente Zeile statt als weiterer Kasten dargestellt. */
+#sim .simBrowserStatus{
+  margin:6px 2px 0;
+  padding:2px 0;
+  border:0;
+  border-radius:0;
+  background:transparent;
+}
+#sim .simBrowserStatus.active{
+  border:0;
+  background:transparent;
+}
+
+/* Decoded und Simulator folgen derselben ruhigen Tabellenwirkung wie Übersicht. */
+#decoded .decodedEditorWrap,
+#sim .simTable{
+  background:#151d22;
+  border:1px solid #2e3b42;
+  border-radius:9px;
+}
+#decoded .decodedEditor thead,
+#sim .simTable thead{
+  background:#222d39;
+}
+#decoded .decodedEditor th,
+#sim .simTable th{
+  border-left:0;
+  border-right:0;
+  border-top:0;
+  border-bottom:1px solid #33434c;
+}
+#decoded .decodedEditor td,
+#sim .simTable td{
+  border-left:0;
+  border-right:0;
+}
+#decodedList tr:hover,
+#simRows tr:hover{
+  background:#1c272d;
+}
+
+/* Auswahl nur über Hintergrund und linke DEACS-Akzentlinie. */
+#decodedList tr.selectedRow,
+#simRows tr.simSelectedRow{
+  background:#203844;
+  box-shadow:inset 3px 0 0 #4ee0a1;
+  outline:0;
+}
+
+/* Eingaben in Tabellen erscheinen erst beim Bearbeiten als Eingabefeld. */
+#decoded .decodedInput,
+#sim .simNameInput{
+  border-color:transparent!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+#decoded .decodedInput:hover,
+#sim .simNameInput:hover{
+  background:rgba(255,255,255,.025)!important;
+}
+#decoded .decodedInput:focus,
+#sim .simNameInput:focus{
+  border-color:#4ee0a1!important;
+  background:#202a34!important;
+}
+
+/* Drei-Punkte-Aktion im Ruhezustand ohne sichtbaren Rahmen. */
+#decoded .rowActionMenu>summary,
+#sim .rowActionMenu>summary,
+#decoder .rowActionMenu>summary{
+  border-color:transparent;
+  background:transparent;
+}
+#decoded tr:hover .rowActionMenu>summary,
+#sim tr:hover .rowActionMenu>summary,
+#decoder tr:hover .rowActionMenu>summary,
+.rowActionMenu[open]>summary,
+.rowActionMenu>summary:focus-visible{
+  border-color:#3a4d59;
+  background:#1b2730;
+}
+
+
+/* V0.12.52-TEST: letzter kompakter UI-Abgleich im bestehenden DEACS-Stil */
+#sim .simTitleRow{margin-bottom:5px}
+#sim .simEmptyHint{margin:6px 0 8px;padding:7px 9px}
+#sim .simAdd{margin-bottom:7px}
+#sim .simToolbar{margin:5px 0 7px}
+#sim .simActions{gap:7px}
+#sim .simTable{height:calc(100vh - 390px);min-height:320px}
+
+/* Seltene Simulatoraktionen liegen ruhig unter „Mehr“. */
+.simMoreMenu{position:relative}
+.simMoreMenu>summary{
+  list-style:none;cursor:pointer;user-select:none;
+  min-height:38px;display:inline-flex;align-items:center;
+  padding:8px 12px;border:1px solid #344350;border-radius:9px;
+  background:#202a34;color:#e8eef2
+}
+.simMoreMenu>summary::-webkit-details-marker{display:none}
+.simMoreMenu>summary::after{content:' ▾';color:#91a7b2;font-size:.78rem}
+.simMoreMenu[open]>summary{border-color:#607787}
+.simMoreMenu>div{
+  position:absolute;z-index:20;top:calc(100% + 5px);left:0;
+  min-width:170px;padding:6px;background:#182126;
+  border:1px solid #344350;border-radius:9px;
+  box-shadow:0 10px 24px rgba(0,0,0,.32)
+}
+.simMoreMenu>div button{display:block;width:100%;text-align:left;margin:0;border-color:transparent;background:transparent}
+.simMoreMenu>div button:hover{background:#202a34;border-color:#344350}
+
+/* Eine einzige ruhige Statuszeile statt einzelner Kästchen. */
+#sim .simStatusLine{
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  margin:6px 2px 0;color:#91a7b2;font-size:.78rem
+}
+#sim .simStatusLine b{color:#e8eef2;margin-left:3px}
+#sim .simStatusSep{color:#41515a}
+#sim .simBrowserStatus{margin:0;padding:0;border:0;background:transparent}
+#sim .simBrowserStatus.active{border:0;background:transparent}
+
+/* Gleiche kompakte Kopf-/Tabellenwirkung ohne neue Designrichtung. */
+.tab>.toolbar:first-child,.tab>.card>.toolbar:first-child{margin-top:0}
+.tab h2{margin-top:0}
+@media(max-width:760px){
+  #sim .simTable{height:52vh;min-height:280px}
+  .simMoreMenu>div{left:auto;right:0}
+}
+
+
+/* V0.12.53-TEST: finale DEACS-UI-Konsolidierung vor dem UI-Freeze */
+:root{
+  --deacs-table-head-h:30px;
+  --deacs-table-row-h:28px;
+  --deacs-control-h:38px;
+}
+
+/* Einheitliche Bedienelemente, bestehende Farben und Radien bleiben erhalten. */
+.tab button,.tab input,.tab select,.tab summary{box-sizing:border-box}
+.tab .toolbar>button,.tab .toolbar>input,.tab .toolbar>select,
+#sim .simActions>button,#sim .simMoreMenu>summary{min-height:var(--deacs-control-h)}
+
+/* Gleiche Kopf- und Zeilenwirkung in allen DEACS-Tabellen. */
+.tablewrap table{border-collapse:separate;border-spacing:0;width:100%}
+.tablewrap thead th{height:var(--deacs-table-head-h);padding-top:5px;padding-bottom:5px}
+.tablewrap tbody tr{height:var(--deacs-table-row-h)}
+.tablewrap tbody td{padding-top:4px;padding-bottom:4px;vertical-align:middle}
+.tablewrap tbody tr:hover{background:#1c272d}
+
+/* Auswahl bleibt ruhig: Hintergrund plus linke DEACS-Akzentlinie, kein Zusatzrahmen. */
+.tablewrap tbody tr.selectedRow,
+.tablewrap tbody tr.simSelectedRow,
+.tablewrap tbody tr.rowSelected{outline:0!important;box-shadow:inset 3px 0 0 #4ee0a1;background:#203844}
+
+/* Einheitliche Tabellenköpfe und Scrollbereiche. */
+.tablewrap thead th{position:sticky;top:0;z-index:3;background:#222d39;border-top:0;border-left:0;border-right:0;border-bottom:1px solid #33434c}
+.tablewrap{scrollbar-width:thin;scrollbar-color:#465b66 #141c21}
+.tablewrap::-webkit-scrollbar{width:10px;height:10px}
+.tablewrap::-webkit-scrollbar-track{background:#141c21}
+.tablewrap::-webkit-scrollbar-thumb{background:#465b66;border:2px solid #141c21;border-radius:8px}
+
+/* Toolbars kompakt halten, ohne ihre DEACS-Struktur zu verändern. */
+.tab>.toolbar,.card>.toolbar{gap:7px;margin-bottom:8px}
+.monitorInfo,.simStatusLine{line-height:1.35}
+
+/* Kein zusätzlicher Rahmen für reine Status-/Quellentexte. */
+.sourceText,.directionText,.simSourceBadge{border:0!important;box-shadow:none!important;background:transparent!important;padding-left:0;padding-right:0}
+
+/* V0.12.54 Analysewerkzeuge – im bestehenden DEACS-Stil */
+.overviewChangedCount{font-weight:700;text-align:center;color:#d5e3e9}
+.decodedByteInspector{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:7px 2px 2px;padding:7px 10px;border-top:1px solid #2e3b42;color:#9bb1bc;font:12px ui-monospace,Consolas,monospace}
+.decodedByteInspector b{color:#e8eef2}.decodedInspectorTitle{color:#4ee0a1}.decodedInspectorBits{display:flex;gap:4px;flex-wrap:wrap}
+.decodedBit{padding:2px 5px;border-radius:4px;background:#1a242a;color:#71858f}.decodedBit.on{color:#4ee0a1;background:#17372d}
+.decodedByteCell.selectedDecodedByte{background:#263943}.decodedByteCell.selectedDecodedByte .byteInput{color:#4ee0a1}
+
+/* V0.12.56: eingefrorene Übersichtseinträge */
+#decodedFrames tr.overviewFrozen{background:rgba(67,178,255,.055)}
+#decodedFrames tr.overviewFrozen td:first-child::before{content:'▌';color:#43b2ff;margin-right:5px}
+#decodedFrames tr.overviewFrozen td:first-child{color:#9fd8ff}
+
+/* V0.12.57-TEST: konfigurierbares Zeitfenster für 'Nur Änderungen'. */
+.changeWindowControl{display:inline-flex!important;align-items:center;gap:6px;margin:0!important;color:#9bb1bc;font-size:13px;white-space:nowrap}
+.changeWindowControl select{margin:0!important;padding:9px 30px 9px 10px;min-width:68px}
+
+
+/* V0.12.59-TEST: sichtbares Ausblenden auch bei neu aufgebauten Tabellenzeilen. */
+#decodedFrames tr.overviewRow{opacity:1}
+#decodedFrames tr.overviewRow.overviewFadeOut{pointer-events:none;animation:overviewRowFadeOut 600ms ease-out forwards}
+@keyframes overviewRowFadeOut{
+  0%{opacity:1;filter:brightness(1)}
+  65%{opacity:.32;filter:brightness(.72)}
+  100%{opacity:0;filter:brightness(.55)}
+}
+
+/* V0.12.64: virtuelle Übersichtstabelle */
+.overviewRenderStatus{display:flex;justify-content:flex-end;gap:18px;min-height:24px;padding:5px 4px 0;color:#9bb1bc;font-size:12px}
+.overviewRenderStatus b{color:#e8eef2;font-weight:700}
+.overviewVirtualSpacer td{height:0!important;padding:0!important;border:0!important;background:transparent!important;pointer-events:none}
+
+.diagnosticActions{display:flex;justify-content:flex-end;max-width:620px;margin-top:10px}.diagnosticActions button{min-width:210px}
+
+.diagnosticActions{gap:8px;flex-wrap:wrap}.diagnosticActions button{min-width:170px}.diagnosticResult{max-width:620px;margin-top:10px;padding:10px 12px;border-left:3px solid #37d67a;background:#151d22;line-height:1.7}.diagnosticResult.warning{border-left-color:#f0ad4e}.diagnosticEvents{max-width:620px;max-height:220px;margin-top:10px;overflow:auto;white-space:pre-wrap}
+
+.statusPillButton{font:inherit;cursor:pointer;border:0}.statusPillButton.busy{opacity:.65;pointer-events:none}
+
+.simReplayOption{display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap}.simReplayOption select{min-width:72px}.simActions{flex-wrap:wrap}
+
+.simReplaySources{display:inline-flex;align-items:center;gap:.55rem;border:1px solid var(--line);border-radius:8px;padding:.25rem .55rem;margin:0;background:var(--panel)}.simReplaySources legend{padding:0 .25rem;font-size:.72rem;color:var(--muted)}.simReplaySources label{display:inline-flex;align-items:center;gap:.2rem;white-space:nowrap;font-size:.82rem}.simReplaySources label.unavailable{opacity:.45}.simReplaySources input{margin:0}
+\n\n/* V0.12.77-TEST: Laufstatus direkt am Button, Aura ohne Layoutänderung. */
+nav button[data-tab="sim"].simActivityGlow{
+  position:relative;
+  z-index:1;
+  font-weight:700;
+}
+
+/* Simulator bleibt auf jedem Tab sichtbar grün. */
+nav button[data-tab="sim"].simulatorActive{
+  color:#4ee0a1;
+  border-color:#4ee0a1;
+  background:rgba(78,224,161,.10);
+  animation:deacsSimulatorButtonGlow 2.2s ease-in-out infinite;
+}
+
+/* Generator bleibt auf jedem Tab sichtbar blau. */
+nav button[data-tab="sim"].generatorActive{
+  color:#6fc6ff;
+  border-color:#43b2ff;
+  background:rgba(67,178,255,.10);
+  animation:deacsGeneratorButtonGlow 2.2s ease-in-out infinite;
+}
+
+/* Simulator und Generator gemeinsam. */
+nav button[data-tab="sim"].simAndGeneratorActive{
+  color:#b9f5dc;
+  border-color:#57d7be;
+  background:linear-gradient(
+    90deg,
+    rgba(78,224,161,.11),
+    rgba(67,178,255,.11)
+  );
+  animation:deacsCombinedButtonGlow 2.2s ease-in-out infinite;
+}
+
+/* Der aktive Tab-Rahmen darf den Laufstatus nicht überschreiben. */
+nav button[data-tab="sim"].active.simulatorActive{
+  color:#4ee0a1;
+  border-color:#4ee0a1;
+}
+nav button[data-tab="sim"].active.generatorActive{
+  color:#6fc6ff;
+  border-color:#43b2ff;
+}
+nav button[data-tab="sim"].active.simAndGeneratorActive{
+  color:#b9f5dc;
+  border-color:#57d7be;
+}
+
+@keyframes deacsSimulatorButtonGlow{
+  0%,100%{
+    box-shadow:
+      0 0 3px rgba(78,224,161,.28),
+      0 0 8px rgba(78,224,161,.12);
+  }
+  50%{
+    box-shadow:
+      0 0 9px rgba(78,224,161,.68),
+      0 0 18px rgba(78,224,161,.27);
+  }
+}
+@keyframes deacsGeneratorButtonGlow{
+  0%,100%{
+    box-shadow:
+      0 0 3px rgba(67,178,255,.30),
+      0 0 8px rgba(67,178,255,.13);
+  }
+  50%{
+    box-shadow:
+      0 0 9px rgba(67,178,255,.70),
+      0 0 18px rgba(67,178,255,.29);
+  }
+}
+@keyframes deacsCombinedButtonGlow{
+  0%,100%{
+    box-shadow:
+      0 0 3px rgba(78,224,161,.25),
+      0 0 9px rgba(67,178,255,.14);
+  }
+  50%{
+    box-shadow:
+      0 0 9px rgba(78,224,161,.54),
+      0 0 19px rgba(67,178,255,.31);
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  nav button[data-tab="sim"].simActivityGlow{
+    animation:none;
+  }
+}
+
+
+/* V0.12.78-TEST: Simulator-Steuerung und Tabelle als gemeinsame Einheit. */
+#simulatorPage .simulator-controls,
+#simulatorPage .simulator-table,
+[data-tab-page="sim"] .simulator-controls,
+[data-tab-page="sim"] .simulator-table{
+  position:relative;
+}
+#simulatorPage .simulator-controls + .simulator-table,
+[data-tab-page="sim"] .simulator-controls + .simulator-table{
+  margin-top:8px;
+}
+
+
+/* V0.12.79-TEST: Generator blau, Simulator grün. */
+#simRandomOptions.simRandomOptions{
+  margin:12px 0 14px;
+  border-left:3px solid #2f80ed;
+  border-radius:10px;
+  background:rgba(47,128,237,.04);
+  overflow:hidden;
+}
+
+#simRandomOptions.simRandomOptions > summary{
+  padding:12px 14px;
+  color:#8fc2ff;
+  font-weight:700;
+  cursor:pointer;
+  user-select:none;
+}
+
+#simRandomOptions.simRandomOptions[open] > summary{
+  border-bottom:1px solid rgba(47,128,237,.24);
+}
+
+#simRandomOptions.simRandomOptions > :not(summary){
+  margin-left:12px;
+  margin-right:12px;
+}
+
+.simulatorGroup{
+  margin:0 0 12px;
+  padding:12px 12px 10px;
+  border-left:3px solid #4ee0a1;
+  border-radius:10px;
+  background:rgba(78,224,161,.04);
+}
+
+.simulatorGroupTitle{
+  margin:0 0 10px;
+  color:#4ee0a1;
+  font-weight:700;
+  font-size:15px;
+}
+
+.simulatorGroup .simTableWrap,
+.simulatorGroup .simTable{
+  margin-top:12px;
+}
+
+
+/* V0.12.80-TEST: Monitor im neuen DEACS-Gruppenstil. */
+#monitor .monitorFilterGroup{
+  margin:10px 0 12px;
+  border:0;
+  border-left:3px solid #2f80ed;
+  border-radius:10px;
+  background:rgba(47,128,237,.04);
+  overflow:hidden;
+}
+
+#monitor .monitorFilterGroup > summary{
+  padding:12px 14px;
+  color:#8fc2ff;
+  font-weight:700;
+}
+
+#monitor .monitorFilterGroup[open] > summary{
+  border-bottom:1px solid rgba(47,128,237,.24);
+}
+
+#monitor .monitorFilterGroup > .toolbar{
+  margin:0;
+  padding:12px;
+}
+
+#monitor .monitorDataGroup{
+  margin:0;
+  padding:10px 10px 8px;
+  border-left:3px solid #4ee0a1;
+  border-radius:10px;
+  background:rgba(78,224,161,.035);
+}
+
+#monitor .monitorGroupTitle{
+  margin:0 0 8px 2px;
+  color:#4ee0a1;
+  font-size:15px;
+  font-weight:700;
+}
+
+#monitor .monitorDataGroup .monitorInfo{
+  margin:0 0 8px 2px;
+}
+
+#monitor .monitorDataGroup .monitorTable{
+  height:calc(100vh - 286px);
+}
+
+@media(max-width:1050px){
+  #monitor .monitorDataGroup .monitorTable{
+    height:calc(100vh - 334px);
+  }
+}
+
+@media(max-width:760px){
+  #monitor .monitorDataGroup{
+    padding:8px;
+  }
+  #monitor .monitorDataGroup .monitorTable{
+    height:55vh;
+  }
+}
+
+
+/* V0.12.81-TEST: Übersicht im DEACS-Gruppenstil. */
+#decoder .overviewToolsGroup{
+  margin:10px 0 12px;
+  padding:10px 12px;
+  border-left:3px solid #2f80ed;
+  border-radius:10px;
+  background:rgba(47,128,237,.04);
+}
+
+#decoder .overviewDataGroup{
+  margin:0;
+  padding:10px 10px 8px;
+  border-left:3px solid #4ee0a1;
+  border-radius:10px;
+  background:rgba(78,224,161,.035);
+}
+
+#decoder .overviewGroupTitle{
+  margin:0 0 8px 2px;
+  font-size:15px;
+  font-weight:700;
+}
+
+#decoder .overviewToolsGroup .overviewGroupTitle{
+  color:#8fc2ff;
+}
+
+#decoder .overviewDataGroup .overviewGroupTitle{
+  color:#4ee0a1;
+}
+
+#decoder .overviewToolbar{
+  margin:0;
+  padding:0;
+}
+
+#decoder .overviewDataGroup .overviewTableWrap{
+  height:calc(100vh - 284px);
+}
+
+#decoder .overviewDataGroup .overviewRenderStatus{
+  margin-top:8px;
+}
+
+@media(max-width:1050px){
+  #decoder .overviewDataGroup .overviewTableWrap{
+    height:calc(100vh - 330px);
+  }
+}
+
+@media(max-width:760px){
+  #decoder .overviewToolsGroup,
+  #decoder .overviewDataGroup{
+    padding:8px;
+  }
+  #decoder .overviewDataGroup .overviewTableWrap{
+    height:55vh;
+  }
+}
+
+
+/* V0.12.82-TEST: Decoded Messages im DEACS-Gruppenstil. */
+#decoded .decodedToolsGroup{
+  margin:10px 0 12px;
+  padding:10px 12px;
+  border-left:3px solid #2f80ed;
+  border-radius:10px;
+  background:rgba(47,128,237,.04);
+}
+
+#decoded .decodedDataGroup{
+  margin:0;
+  padding:10px 10px 8px;
+  border-left:3px solid #4ee0a1;
+  border-radius:10px;
+  background:rgba(78,224,161,.035);
+}
+
+#decoded .decodedGroupTitle{
+  margin:0 0 8px 2px;
+  font-size:15px;
+  font-weight:700;
+}
+
+#decoded .decodedToolsGroup .decodedGroupTitle{
+  color:#8fc2ff;
+}
+
+#decoded .decodedDataGroup .decodedGroupTitle{
+  color:#4ee0a1;
+}
+
+#decoded .decodedToolsGroup .toolbar{
+  margin:0;
+  padding:0;
+}
+
+#decoded .decodedDataGroup .tablewrap,
+#decoded .decodedDataGroup .decodedTable{
+  height:calc(100vh - 284px);
+}
+
+#decoded .decodedDataGroup .overviewRenderStatus,
+#decoded .decodedDataGroup .decodedStatus{
+  margin-top:8px;
+}
+
+@media(max-width:1050px){
+  #decoded .decodedDataGroup .tablewrap,
+  #decoded .decodedDataGroup .decodedTable{
+    height:calc(100vh - 330px);
+  }
+}
+
+@media(max-width:760px){
+  #decoded .decodedToolsGroup,
+  #decoded .decodedDataGroup{
+    padding:8px;
+  }
+
+  #decoded .decodedDataGroup .tablewrap,
+  #decoded .decodedDataGroup .decodedTable{
+    height:55vh;
+  }
+}
+
+
+/* V0.12.83-TEST: Simulator-Seite zentriert und vollständig bedienbar. */
+#sim .simCard{
+  width:min(100%, 1600px);
+  margin-left:auto;
+  margin-right:auto;
+}
+
+#simRandomOptions .simRandomGrid,
+#simRandomOptions .simGeneratorExtras,
+#simRandomOptions .simGeneratorFrame,
+#simRandomOptions .simGeneratorActions{
+  width:min(100%, 1500px);
+  margin-left:auto;
+  margin-right:auto;
+}
+
+#simRandomOptions .simGeneratorActions{
+  display:flex;
+  justify-content:center;
+  padding:2px 12px 14px;
+}
+
+#simRandomOptions .generatorPrimary{
+  min-width:190px;
+  border-color:#43b2ff;
+  color:#8fcfff;
+  background:rgba(67,178,255,.10);
+  font-weight:700;
+}
+
+#simRandomOptions .generatorPrimary.active{
+  color:#d6ecff;
+  border-color:#67c4ff;
+  background:rgba(67,178,255,.18);
+  box-shadow:0 0 9px rgba(67,178,255,.48);
+}
+
+#sim .simulatorGroup{
+  width:min(100%, 1600px);
+  margin-left:auto;
+  margin-right:auto;
+}
+
+#sim .simAdd,
+#sim .simToolbar,
+#sim .simTable,
+#sim .simStatusLine{
+  width:100%;
+}
+
+#sim .simReplaySources{
+  border-color:rgba(242,162,71,.55);
+  background:rgba(242,162,71,.055);
+}
+
+#sim .simReplaySources legend{
+  color:#f2b36d;
+  font-weight:700;
+}
+
+#sim .simReplaySources label{
+  min-height:28px;
+  padding:2px 4px;
+}
+
+#sim .simReplaySources label:not(.unavailable){
+  color:#f0e5d7;
+}
+
+#sim .simReplaySources label.unavailable{
+  opacity:.38;
+}
+
+@media(max-width:900px){
+  #sim .simCard,
+  #sim .simulatorGroup{
+    width:100%;
+  }
+
+  #simRandomOptions .simGeneratorActions{
+    justify-content:flex-start;
+  }
+}
+
+
+/* V0.12.84-TEST: Quellen bleiben auswählbar, auch wenn aktuell 0 Frames vorhanden sind. */
+#sim .simReplaySources label,
+#sim .simReplaySources label.unavailable{
+  opacity:1;
+  cursor:pointer;
+}
+
+#sim .simReplaySources input[type="checkbox"]{
+  cursor:pointer;
+}
+
+
+/* V0.12.85-TEST: eigene orangefarbene Log-Wiedergabegruppe. */
+#sim .logReplayGroup{
+  width:min(100%,1600px);
+  margin:0 auto 14px;
+  padding:12px 14px;
+  border-left:3px solid #f2a247;
+  border-radius:10px;
+  background:rgba(242,162,71,.045);
+}
+
+#sim .logReplayGroupTitle{
+  margin:0 0 6px;
+  color:#f2b36d;
+  font-size:15px;
+  font-weight:700;
+}
+
+#sim .logReplayLoadedInfo{
+  margin:0 0 10px;
+  color:#b9c7d2;
+}
+
+#sim .logReplayControls{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+#sim .logReplayGroup .simReplaySources{
+  margin:0;
+  border-color:rgba(242,162,71,.52);
+  background:rgba(242,162,71,.055);
+}
+
+#sim .logReplayGroup .simReplaySources legend{
+  color:#f2b36d;
+  font-weight:700;
+}
+
+#sim .logReplayGroup .simReplaySources label,
+#sim .logReplayGroup .simReplaySources label.emptySource{
+  opacity:1;
+  color:#f0e5d7;
+  cursor:pointer;
+}
+
+#sim .logReplayGroup .simReplaySources label.emptySource{
+  color:#aeb7be;
+}
+
+#sim .logReplayGroup .simReplaySources input{
+  cursor:pointer;
+}
+
+#sim .logReplayGroup #simReplay{
+  border-color:#f2a247;
+}
+
+#sim .logReplayGroup #simReplay.active{
+  color:#ffe1bd;
+  background:rgba(242,162,71,.16);
+  box-shadow:0 0 9px rgba(242,162,71,.42);
+}
+
+@media(max-width:760px){
+  #sim .logReplayControls{
+    align-items:stretch;
+  }
+}
+
+
+/* V0.12.86-TEST: Wiedergabefortschritt sichtbar. */
+#sim .logReplayLoadedInfo{
+  display:flex;
+  gap:24px;
+  flex-wrap:wrap;
+}
+
+#sim .logReplayLoadedInfo b{
+  color:#ffd09a;
+}
+
+
+/* V0.12.87-TEST: Hauptbutton zeigt die aktive Quelle farblich an. */
+
+/* Log-Wiedergabe hat Vorrang vor Simulator-/Generatorfarben. */
+nav button[data-tab="sim"].logReplayActive,
+nav button[data-tab="sim"][data-activity-source="log"]{
+  color:#ffd09a !important;
+  border-color:#f2a247 !important;
+  background:rgba(242,162,71,.12) !important;
+  animation:deacsLogReplayButtonGlow 2.2s ease-in-out infinite !important;
+}
+
+/* Simulator: grün. */
+nav button[data-tab="sim"][data-activity-source="simulator"]{
+  color:#4ee0a1;
+  border-color:#4ee0a1;
+  background:rgba(78,224,161,.10);
+  animation:deacsSimulatorButtonGlow 2.2s ease-in-out infinite;
+}
+
+/* Generator: blau. */
+nav button[data-tab="sim"][data-activity-source="generator"]{
+  color:#6fc6ff;
+  border-color:#43b2ff;
+  background:rgba(67,178,255,.10);
+  animation:deacsGeneratorButtonGlow 2.2s ease-in-out infinite;
+}
+
+/* Simulator und Generator gemeinsam: grün-blau. */
+nav button[data-tab="sim"][data-activity-source="sim-generator"]{
+  color:#b9f5dc;
+  border-color:#57d7be;
+  background:linear-gradient(
+    90deg,
+    rgba(78,224,161,.11),
+    rgba(67,178,255,.11)
+  );
+  animation:deacsCombinedButtonGlow 2.2s ease-in-out infinite;
+}
+
+@keyframes deacsLogReplayButtonGlow{
+  0%,100%{
+    box-shadow:
+      0 0 3px rgba(242,162,71,.30),
+      0 0 8px rgba(242,162,71,.13);
+  }
+  50%{
+    box-shadow:
+      0 0 9px rgba(242,162,71,.72),
+      0 0 18px rgba(242,162,71,.30);
+  }
+}
+
+@media (prefers-reduced-motion:reduce){
+  nav button[data-tab="sim"].logReplayActive,
+  nav button[data-tab="sim"][data-activity-source]{
+    animation:none !important;
+  }
+}
+
+
+/* V0.12.88-TEST: verbindlicher DEACS-Tooltip-Style.
+   Verwendung künftig über Elemente mit data-tooltip="Text".
+   Varianten: tooltip-blue, tooltip-green, tooltip-orange, tooltip-red. */
+[data-tooltip]{
+  position:relative;
+}
+
+[data-tooltip]::before,
+[data-tooltip]::after{
+  position:absolute;
+  z-index:10000;
+  pointer-events:none;
+  opacity:0;
+  visibility:hidden;
+  transition:
+    opacity 130ms ease,
+    visibility 130ms ease;
+}
+
+[data-tooltip]::before{
+  content:attr(data-tooltip);
+  left:50%;
+  bottom:calc(100% + 10px);
+  transform:translateX(-50%);
+  width:max-content;
+  max-width:340px;
+  padding:9px 11px 9px 13px;
+  border:1px solid #334454;
+  border-left:3px solid #7f95a8;
+  border-radius:9px;
+  background:#17222b;
+  color:#e8f0f5;
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.34),
+    0 0 0 1px rgba(255,255,255,.025) inset;
+  font-size:13px;
+  font-weight:500;
+  line-height:1.35;
+  text-align:left;
+  white-space:normal;
+}
+
+[data-tooltip]::after{
+  content:"";
+  left:50%;
+  bottom:calc(100% + 5px);
+  transform:translateX(-50%);
+  border:5px solid transparent;
+  border-top-color:#17222b;
+}
+
+[data-tooltip]:hover::before,
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::before,
+[data-tooltip]:focus-visible::after{
+  opacity:1;
+  visibility:visible;
+}
+
+[data-tooltip].tooltip-blue::before{
+  border-left-color:#43b2ff;
+}
+
+[data-tooltip].tooltip-green::before{
+  border-left-color:#4ee0a1;
+}
+
+[data-tooltip].tooltip-orange::before{
+  border-left-color:#f2a247;
+}
+
+[data-tooltip].tooltip-red::before{
+  border-left-color:#e65b64;
+}
+
+[data-tooltip].tooltip-bottom::before{
+  top:calc(100% + 10px);
+  bottom:auto;
+}
+
+[data-tooltip].tooltip-bottom::after{
+  top:calc(100% + 5px);
+  bottom:auto;
+  border-top-color:transparent;
+  border-bottom-color:#17222b;
+}
+
+[data-tooltip].tooltip-left::before{
+  left:0;
+  transform:none;
+}
+
+[data-tooltip].tooltip-right::before{
+  left:auto;
+  right:0;
+  transform:none;
+}
+
+@media (prefers-reduced-motion:reduce){
+  [data-tooltip]::before,
+  [data-tooltip]::after{
+    transition:none;
+  }
+}
+
+
+/* V0.12.89-TEST: verbindlicher Standard für einklappbare DEACS-Bereiche. */
+.deacsCollapsibleGroup{
+  margin:0 0 14px;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.deacsCollapsibleGroup > summary{
+  display:flex;
+  align-items:center;
+  min-height:48px;
+  padding:0 14px;
+  font-weight:700;
+  cursor:pointer;
+  user-select:none;
+  list-style:none;
+}
+
+.deacsCollapsibleGroup > summary::-webkit-details-marker{
+  display:none;
+}
+
+.deacsCollapsibleGroup > summary::before{
+  content:"▶";
+  width:18px;
+  flex:0 0 18px;
+  font-size:11px;
+  transition:transform 130ms ease;
+}
+
+.deacsCollapsibleGroup[open] > summary::before{
+  transform:rotate(90deg);
+}
+
+.deacsCollapsibleGroup[open] > summary{
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.deacsCollapsibleGroup .deacsGroupBody{
+  padding:14px 16px 16px;
+}
+
+.sectionActionRow{
+  display:flex;
+  justify-content:flex-start;
+  align-items:center;
+  min-height:54px;
+  margin-top:14px;
+  padding-top:12px;
+  border-top:1px solid rgba(255,255,255,.07);
+}
+
+.sectionActionRow > button{
+  min-width:220px;
+  min-height:46px;
+  margin:0;
+}
+
+/* Generator: blau */
+#simRandomOptions.deacsCollapsibleGroup{
+  border-left:3px solid #2f80ed;
+  background:rgba(47,128,237,.04);
+}
+
+#simRandomOptions.deacsCollapsibleGroup > summary{
+  color:#8fc2ff;
+}
+
+/* Log-Wiedergabe: orange */
+#sim .logReplayGroup.deacsCollapsibleGroup{
+  border-left:3px solid #f2a247;
+  background:rgba(242,162,71,.045);
+  padding:0;
+}
+
+#sim .logReplayGroup.deacsCollapsibleGroup > summary{
+  color:#f2b36d;
+}
+
+/* Simulator: grün */
+#sim .simulatorGroup.deacsCollapsibleGroup{
+  border-left:3px solid #4ee0a1;
+  background:rgba(78,224,161,.04);
+  padding:0;
+}
+
+#sim .simulatorGroup.deacsCollapsibleGroup > summary{
+  color:#4ee0a1;
+}
+
+/* Start/Stop-Knöpfe sitzen in allen drei Bereichen identisch. */
+#simRandomOptions .sectionActionRow,
+#sim .logReplayGroup .sectionActionRow,
+#sim .simulatorGroup .sectionActionRow{
+  justify-content:flex-start;
+}
+
+#simRandomOptions .sectionActionRow button,
+#sim .logReplayGroup .sectionActionRow button,
+#sim .simulatorGroup .sectionActionRow button{
+  width:220px;
+}
+
+@media(max-width:760px){
+  .deacsCollapsibleGroup .deacsGroupBody{
+    padding:10px;
+  }
+
+  .sectionActionRow > button{
+    width:100% !important;
+    min-width:0;
+  }
+}
+
+
+/* V0.12.90-TEST: sichtbare Bedienhilfe im eigenen DEACS-Tooltip. */
+#simBackend[data-tooltip]{
+  cursor:help;
+}
+
+#simBackend[data-tooltip]::before{
+  min-width:270px;
+  max-width:340px;
+  font-family:inherit;
+}
+
+#simBackend.tooltip-right::before{
+  left:auto;
+  right:0;
+  transform:none;
+}
+
+#simBackend.tooltip-right::after{
+  left:auto;
+  right:18px;
+  transform:none;
+}
+
+/* Sicherheit: Native title-Tooltips werden am Backend per JS entfernt. */
+
+
+/* V0.12.92-TEST: echte einklappbare Bereiche auf allen Tabs. */
+.tab > .deacsCollapsibleGroup,
+.tab > .singlePageGroup{
+  width:100%;
+  margin:10px 0 14px;
+}
+
+.deacsCollapsibleGroup{
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.deacsCollapsibleGroup > summary{
+  display:flex;
+  align-items:center;
+  min-height:48px;
+  padding:0 14px;
+  cursor:pointer;
+  user-select:none;
+  list-style:none;
+  font-weight:700;
+}
+
+.deacsCollapsibleGroup > summary::-webkit-details-marker{
+  display:none;
+}
+
+.deacsCollapsibleGroup > summary::before{
+  content:"▶";
+  width:18px;
+  flex:0 0 18px;
+  font-size:11px;
+  transition:transform 130ms ease;
+}
+
+.deacsCollapsibleGroup[open] > summary::before{
+  transform:rotate(90deg);
+}
+
+.deacsCollapsibleGroup[open] > summary{
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.deacsCollapsibleGroup > .deacsGroupBody{
+  padding:14px 16px 16px;
+}
+
+.toolGroupBlue{
+  border-left:3px solid #2f80ed;
+  background:rgba(47,128,237,.04);
+}
+
+.toolGroupBlue > summary{
+  color:#8fc2ff;
+}
+
+.dataGroupGreen{
+  border-left:3px solid #4ee0a1;
+  background:rgba(78,224,161,.04);
+}
+
+.dataGroupGreen > summary{
+  color:#4ee0a1;
+}
+
+.replayGroupOrange{
+  border-left:3px solid #f2a247;
+  background:rgba(242,162,71,.045);
+}
+
+.replayGroupOrange > summary{
+  color:#f2b36d;
+}
+
+/* Vorhandene Karten innerhalb eines Bereichs erhalten keinen zweiten Außenrahmen. */
+.singlePageGroup > .deacsGroupBody > .card{
+  margin:0;
+  width:100%;
+}
+
+/* Alte Titel bleiben als Seiteninhalt möglich, die Bereichsüberschrift ist zusätzlich sichtbar. */
+#labels .singlePageGroup,
+#tx .singlePageGroup,
+#logs .singlePageGroup,
+#settings .singlePageGroup{
+  max-width:none;
+}
+
+/* Eingeklappte Bereiche zeigen ausschließlich ihre Kopfzeile. */
+.deacsCollapsibleGroup:not([open]) > .deacsGroupBody{
+  display:none;
+}
+
+@media(max-width:760px){
+  .deacsCollapsibleGroup > .deacsGroupBody{
+    padding:10px;
+  }
+}
+
+
+/* V0.12.93-TEST: sichtbarer Fortschritt bei großen Log-Exporten. */
+.logExportProgressDialog{z-index:60}
+.logExportProgressCard{width:min(560px,100%)}
+.logExportProgressCard p{margin-bottom:18px}
+.logExportProgressTrack{position:relative;height:14px;overflow:hidden;border:1px solid #38505c;border-radius:999px;background:#10181d;box-shadow:inset 0 1px 4px rgba(0,0,0,.45)}
+.logExportProgressTrack span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#23b985,#4ee0a1);box-shadow:0 0 14px rgba(78,224,161,.42);transition:width .14s linear}
+.logExportProgressMeta{display:flex;justify-content:space-between;gap:18px;margin-top:9px;color:#b9cbd3;font-variant-numeric:tabular-nums}
+.logExportProgressMeta b{color:#4ee0a1}
+.logExportProgressCard small{display:block;margin-top:18px;color:#78909b;line-height:1.45}
+@media(max-width:560px){.logExportProgressMeta{align-items:flex-start;flex-direction:column;gap:3px}}
+
+
+/* V0.12.96: Simulator-Einträge wie Decoded messages direkt bearbeitbar */
+#sim .simEditInput{height:32px;margin:0;padding:4px 7px;background:transparent;border-color:transparent;border-radius:6px;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;color:inherit}
+#sim tr:hover .simEditInput{background:#1d282f;border-color:#31414b}
+#sim .simEditInput:focus{background:#202a34;border-color:#4ee0a1;outline:none}
+#sim .simIdInput{width:90px;text-align:center;text-transform:uppercase}
+#sim .simDataInput{width:100%;min-width:230px;text-transform:uppercase}
+#sim .simMsInput{width:72px;text-align:right}
+#sim .simIntervalEdit{display:flex;align-items:center;justify-content:flex-end;gap:5px}
+#sim .simIntervalEdit span{color:var(--muted)}
+#sim .simInvalidRow .simEditInput[aria-invalid="true"]{border-color:#b54a55;background:rgba(181,74,85,.12)}
+
+/* Simulator: Zellen direkt per Klick bearbeiten */
+#sim .simCellValue{
+  display:block;width:100%;min-height:32px;margin:0;padding:4px 7px;
+  border:1px solid transparent;border-radius:6px;background:transparent;
+  color:inherit;text-align:left;font:inherit;cursor:text;
+}
+#sim .simCellValue.simIdInput,
+#sim .simCellValue.simDataInput,
+#sim .simCellValue.simMsInput{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+#sim tr:hover .simCellValue{background:#1d282f;border-color:#31414b}
+#sim .simCellValue:focus-visible{outline:1px solid #4ee0a1;outline-offset:-1px}
+
+
+/* V0.12.97: Simulator-Bytes einzeln bearbeiten, Intervalle als DEACS-Pulldown */
+#sim .simByteCells{display:grid;grid-template-columns:repeat(8,42px);gap:4px;align-items:center}
+#sim .simByteValue,#sim .simByteInput{width:42px;min-width:42px;text-align:center;text-transform:uppercase;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+#sim .simByteInput{height:32px;margin:0;padding:4px;border-radius:5px}
+#sim .simIntervalSelect{width:96px;height:34px;margin:0;padding:5px 28px 5px 8px;text-align:left}
+#sim .simAdd{grid-template-columns:120px minmax(360px,1fr) 130px auto;align-items:center}
+#sim .simAddBytes{display:grid;grid-template-columns:repeat(8,minmax(38px,1fr));gap:5px}
+#sim .simAddBytes input{width:100%;min-width:38px;height:42px;margin:0;padding:7px 4px;text-align:center;text-transform:uppercase;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+#sim .simAddBytes input[aria-invalid="true"]{border-color:#b54a55;background:rgba(181,74,85,.12)}
+@media(max-width:900px){#sim .simAdd{grid-template-columns:110px 1fr}#sim .simAddBytes{grid-column:1/-1}.simAdd>select,.simAdd>button{width:100%}}
+
+/* V0.12.99: Simulator-Schnellaktionen ohne Mehr-Menü */
+#sim .simAdd{align-items:start}
+#sim .simAddActions{grid-column:4;display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+#sim .simAddActions button{min-height:38px;white-space:nowrap}
+@media(max-width:900px){#sim .simAddActions{grid-column:1/-1;justify-content:flex-end}}
+@media(max-width:520px){#sim .simAddActions{justify-content:stretch}#sim .simAddActions button{flex:1}}
+
+
+/* V0.12.99 release polish: kompakte TX-/Simulator-Eingaben und einheitliche Tabellenzeilen */
+.txFrameLine input,.txFrameLine select{height:40px;font-size:14px;padding:7px 10px}
+.txFrameLine .byteEditor input{height:40px;margin-top:5px}
+.txFrameActions button{height:40px}
+.txFrameLine>label span,.txFrameLine .byteEditor label{font-size:12px;margin-bottom:4px}
+.txHistoryTable tbody td{padding-top:9px;padding-bottom:9px;height:44px;vertical-align:middle}
+.txHistoryActions button{min-height:34px}
+#sim .simAdd{display:grid;grid-template-columns:120px 74px minmax(440px,1fr) 118px auto;gap:8px;align-items:end;margin-bottom:8px}
+#sim .simAdd>label{display:block;margin:0;color:#8fa4af;font-size:12px}
+#sim .simAdd>label>span,#sim .simAddBytes label>span{display:block;margin-bottom:4px}
+#sim .simAdd input,#sim .simAdd select{height:36px;margin:0;padding:6px 9px}
+#sim .simAddBytes{display:grid;grid-template-columns:repeat(8,minmax(42px,1fr));gap:5px}
+#sim .simAddBytes label{display:block;margin:0;color:#8fa4af;font-size:12px}
+#sim .simAddBytes input{height:36px;min-width:42px;padding:5px 3px}
+#sim .simAddBytes label.disabled{opacity:.38}
+#sim .simAddActions{grid-column:5;display:flex;justify-content:flex-end;gap:8px;margin-top:0}
+#sim .simAddActions button,#sim #simAdd{height:36px;min-height:36px;padding:6px 10px}
+#sim .simTable table{min-width:1180px;table-layout:fixed}
+#sim .simTable th,#sim .simTable td{text-align:center;vertical-align:middle}
+#sim .simTable th:nth-child(1),#sim .simTable td:nth-child(1){width:95px;text-align:left}
+#sim .simTable th:nth-child(2),#sim .simTable td:nth-child(2){width:190px;text-align:left}
+#sim .simTable th:nth-child(3),#sim .simTable td:nth-child(3){width:52px}
+#sim .simTable th:nth-child(n+4):nth-child(-n+11),#sim .simTable td:nth-child(n+4):nth-child(-n+11){width:48px}
+#sim .simTable th:nth-child(12),#sim .simTable td:nth-child(12){width:95px}
+#sim .simTable th:nth-child(13),#sim .simTable td:nth-child(13){width:58px}
+#sim .simTable th:nth-child(14),#sim .simTable td:nth-child(14){width:70px}
+#sim .simTable tbody td{height:44px;padding-top:7px;padding-bottom:7px}
+#sim .simByteValue,#sim .simByteInput{width:38px;min-width:38px}
+#sim .simByteOff{color:#60717a;cursor:default}
+#sim .simDlcSelect{width:54px;height:32px;margin:0;padding:4px 22px 4px 7px}
+@media(max-width:1050px){#sim .simAdd{grid-template-columns:110px 70px 1fr 110px}#sim .simAddBytes{grid-column:1/-1}#sim #simAdd{grid-column:4}#sim .simAddActions{grid-column:1/-1}}
+
+/* V0.12.99 final: flachere TX-/Simulator-Eingaben, saubere ID/DLC-Trennung */
+.txFrameLine{gap:10px}
+.txFrameLine input,.txFrameLine select{height:34px;min-height:34px;padding:5px 9px;font-size:14px}
+.txFrameLine .byteEditor{gap:7px}
+.txFrameLine .byteEditor input{height:34px;min-height:34px;margin-top:3px;padding:5px 4px}
+.txFrameLine>label span,.txFrameLine .byteEditor label{margin-bottom:3px;line-height:1.1}
+.txFrameActions button{height:34px;min-height:34px;padding:5px 12px}
+
+#sim .simAdd{grid-template-columns:112px 72px minmax(400px,1fr) 112px auto;column-gap:12px;row-gap:7px;align-items:end}
+#sim .simAdd>*{min-width:0}
+#sim .simAdd>label{min-width:0}
+#sim .simAdd input,#sim .simAdd select{display:block;width:100%;max-width:100%;height:32px;min-height:32px;padding:4px 8px}
+#sim .simAdd>label>span,#sim .simAddBytes label>span{margin-bottom:3px;line-height:1.1}
+#sim .simAddBytes{gap:6px;min-width:0}
+#sim .simAddBytes label{min-width:0}
+#sim .simAddBytes input{width:100%;min-width:0;height:32px;min-height:32px;padding:4px 2px}
+#sim #simAdd,#sim .simAddActions button{height:32px;min-height:32px;padding:4px 10px}
+#sim .simAddId{grid-column:1}
+#sim .simAddDlc{grid-column:2}
+#sim .simAddBytes{grid-column:3}
+#sim .simAddInterval{grid-column:4}
+#sim #simAdd{grid-column:5}
+#sim .simAddActions{grid-column:5;margin-top:0}
+@media(max-width:1050px){
+  #sim .simAdd{grid-template-columns:112px 72px minmax(320px,1fr) 112px}
+  #sim .simAddBytes{grid-column:1/-1}
+  #sim .simAddInterval{grid-column:3}
+  #sim #simAdd{grid-column:4}
+  #sim .simAddActions{grid-column:3/5}
+}
+
+/* V0.12.99-TEST: verbindliche tabellenweite Ausrichtung
+   Alle Tabellenüberschriften stehen zentriert über ihrer Datenspalte. */
+:root{
+  --deacs-input-height:38px;
+  --deacs-button-height:38px;
+  --deacs-table-header-height:30px;
+  --deacs-table-row-height:28px;
+  --deacs-gap-small:6px;
+  --deacs-gap-normal:8px;
+  --deacs-radius:9px;
+}
+
+/* Globaler DEACS-Standard für sämtliche Tabellen in allen Tabs. */
+table thead th,
+.tablewrap thead th,
+.txHistoryTable thead th,
+.simTable thead th{
+  text-align:center!important;
+  vertical-align:middle;
+}
+
+/* Sortier- und Kopfbedienelemente bleiben ebenfalls mittig in der Kopfzelle. */
+table thead th > button,
+table thead th > a,
+table thead th > span,
+table thead th > div{
+  margin-left:auto;
+  margin-right:auto;
+  justify-content:center;
+  text-align:center;
+}
+
+/* V0.12.99-TEST finaler Style-Fix:
+   Kopfzellen ALLER Tabellen sind immer zentriert. Spezifische
+   Spaltenregeln dürfen nur Datenzellen (td), niemals th, links/rechts setzen. */
+table > thead > tr > th,
+#monitor table > thead > tr > th,
+#overview table > thead > tr > th,
+#decoded table > thead > tr > th,
+#labels table > thead > tr > th,
+#tx table > thead > tr > th,
+#sim table > thead > tr > th,
+#logs table > thead > tr > th,
+#settings table > thead > tr > th {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+/* Auch Inhalte von sortierbaren oder zusammengesetzten Kopfzellen mittig. */
+table > thead > tr > th > * {
+  text-align: center !important;
+  justify-content: center !important;
+}
+
+
+/* V0.12.99-TEST: Simulator-Spalten dauerhaft synchron ausrichten.
+   Ein gemeinsames colgroup steuert Kopf und Daten; dadurch können thead und
+   tbody auch im Scrollbereich nicht mehr gegeneinander verrutschen. */
+#sim .simTable table{
+  width:100%;
+  min-width:1180px;
+  table-layout:fixed;
+}
+#sim .simTable col.simColId{width:95px}
+#sim .simTable col.simColLabel{width:190px}
+#sim .simTable col.simColDlc{width:52px}
+#sim .simTable col.simColByte{width:48px}
+#sim .simTable col.simColInterval{width:95px}
+#sim .simTable col.simColActive{width:58px}
+#sim .simTable col.simColSource{width:70px}
+#sim .simTable col.simColDrag{width:40px}
+#sim .simTable col.simColMenu{width:46px}
+#sim .simTable thead,
+#sim .simTable tbody{
+  display:table-header-group;
+  width:auto;
+}
+#sim .simTable tbody{display:table-row-group}
+#sim .simTable th,
+#sim .simTable td{
+  text-align:center!important;
+  vertical-align:middle!important;
+}
+#sim .simTable th:nth-child(2),
+#sim .simTable td:nth-child(2){text-align:center!important}
+#sim .simTable th:nth-child(1),
+#sim .simTable td:nth-child(1){text-align:center!important}
+
+
+/* V0.12.99-TEST endgültiger Tabellen-Standard:
+   Kopf und Daten sind in jeder Spalte auf derselben Mittelachse ausgerichtet. */
+.tablewrap table > thead > tr > th,
+.tablewrap table > tbody > tr > td {
+  text-align:center !important;
+  vertical-align:middle !important;
+}
+
+/* Inhalte und Inline-Editoren folgen der Mittelachse ihrer Zelle. */
+.tablewrap table > thead > tr > th > *,
+.tablewrap table > tbody > tr > td > * {
+  margin-left:auto;
+  margin-right:auto;
+}
+
+/* TX-Verlauf: ein gemeinsames colgroup hält Kopf und Daten dauerhaft deckungsgleich. */
+#tx .txHistoryTable table{
+  width:100%;
+  min-width:1220px;
+  table-layout:fixed;
+}
+#tx .txHistoryTable col.txColId{width:110px}
+#tx .txHistoryTable col.txColLabel{width:170px}
+#tx .txHistoryTable col.txColDlc{width:58px}
+#tx .txHistoryTable col.txColByte{width:54px}
+#tx .txHistoryTable col.txColType{width:115px}
+#tx .txHistoryTable col.txColCount{width:72px}
+#tx .txHistoryTable col.txColLast{width:115px}
+#tx .txHistoryTable col.txColAction{width:190px}
+
+/* Alte Einzelausrichtungen für Simulator und TX dürfen den Standard nicht übersteuern. */
+#sim .simTable th,
+#sim .simTable td,
+#tx .txHistoryTable th,
+#tx .txHistoryTable td,
+#sim .simTable th:nth-child(1),
+#sim .simTable td:nth-child(1),
+#sim .simTable th:nth-child(2),
+#sim .simTable td:nth-child(2),
+.txHistoryTable th:first-child,
+.txHistoryTable td:first-child {
+  text-align:center !important;
+}
+
+/* DEACS V0.13.00-TEST: exakte gemeinsame Mittelachsen
+   Beschriftung, Eingabefeld, Tabellenkopf und Tabellenwert liegen je Spalte
+   auf derselben geometrischen Mitte. Keine Korrektur über optische Offsets. */
+#sim .simAdd > label > span,
+#sim .simAddBytes > label > span,
+#tx .txFrameGrid > label > span,
+#tx .txDataGrid > label > span {
+  display:block;
+  width:100%;
+  box-sizing:border-box;
+  text-align:center !important;
+}
+
+#sim .simAdd input,
+#sim .simAdd select,
+#sim .simAddBytes input,
+#tx .txFrameGrid input,
+#tx .txFrameGrid select,
+#tx .txDataGrid input {
+  width:100%;
+  box-sizing:border-box;
+  text-align:center;
+  text-align-last:center;
+}
+
+/* Tabellenzellen erhalten keinerlei seitlichen Versatz. Der anklickbare Inhalt
+   füllt die komplette Spaltenbreite und zentriert sich darin selbst. */
+#sim .simTable th,
+#sim .simTable td,
+#tx .txHistoryTable th,
+#tx .txHistoryTable td {
+  padding-left:0 !important;
+  padding-right:0 !important;
+  text-align:center !important;
+}
+
+#sim .simTable .simCellValue,
+#sim .simTable .simEditInput,
+#sim .simTable .simDlcSelect,
+#sim .simTable .simIntervalSelect {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  min-width:0;
+  margin:0;
+  padding-left:0;
+  padding-right:0;
+  box-sizing:border-box;
+  text-align:center;
+  text-align-last:center;
+}
+
+#sim .simTable thead th,
+#sim .simTable tbody td {
+  line-height:1;
+}
+
+/* DEACS V0.13.00-TEST: TX-Eingabe exakt wie Simulator zentrieren.
+   Die vorherigen Selektoren .txFrameGrid/.txDataGrid existieren in der
+   aktuellen TX-Struktur nicht; tatsächlich verwendet die Seite .txFrameLine. */
+#tx .txFrameLine > label > span,
+#tx .txFrameLine .byteEditor > label {
+  display:block;
+  width:100%;
+  box-sizing:border-box;
+  text-align:center !important;
+}
+
+#tx .txFrameLine > label > input,
+#tx .txFrameLine > label > select,
+#tx .txFrameLine .byteEditor > label > input {
+  width:100%;
+  box-sizing:border-box;
+  text-align:center !important;
+  text-align-last:center;
+  margin-left:0;
+  margin-right:0;
+}
+
+/* Auch die TX-Aktionsschaltflächen bleiben auf derselben vertikalen Linie
+   wie die Eingabefelder und erhalten keinen zusätzlichen Seitenversatz. */
+#tx .txFrameActions {
+  align-self:end;
+  margin:0;
+}
+
+
+/* V0.13.02-TEST: eigener Ereignis-Analyse-Tab. */
+#events .deacsGroupBody{display:flex;flex-direction:column;gap:12px}
+.eventControlGrid{display:grid;grid-template-columns:minmax(260px,.75fr) minmax(420px,1.25fr);gap:12px}
+.eventPanel,.eventDetailPanel{background:#182126;border:1px solid #2e3b42;border-radius:10px;padding:14px}
+.eventPanel h2,.eventDetailPanel h2{margin:0 0 12px;font-size:17px}
+.eventSourceOptions{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.eventSourceOptions label,.eventAnalysisControls label{display:inline-flex;align-items:center;gap:7px;margin:0}
+.eventSourceOptions input,.eventAnalysisControls input{margin:0}
+.eventStatusLine{margin-top:12px;color:#9bb1bc}
+.eventStatusLine b{color:#e8eef2}
+.eventMarkerEntry{display:grid;grid-template-columns:minmax(240px,1fr) auto auto;gap:8px;align-items:center}
+.eventMarkerEntry input{width:100%;margin:0}
+.eventMarkerTable{height:210px;min-height:150px}
+.eventResultsTable{height:300px;min-height:210px}
+.eventAnalysisControls{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.eventAnalysisControls label:first-child input,.eventAnalysisControls label:nth-child(2) input{width:92px}
+.eventAnalysisHint,.eventDetailPlaceholder{color:#91a7b2}
+.eventEmptyRow td{text-align:center!important;color:#78909b;font-family:system-ui,sans-serif;padding:24px 10px!important}
+#events table > thead > tr > th{text-align:center!important}
+#events table > tbody > tr:not(.eventEmptyRow){cursor:pointer}
+#events table > tbody > tr.eventSelected{box-shadow:inset 3px 0 0 #4ee0a1;background:#203844}
+
+/* Übersicht-Werkzeuge logisch gruppieren. */
+.overviewToolbar{align-items:stretch!important;gap:10px!important}
+.overviewToolGroup{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;margin:0;padding:8px 10px 10px;border:1px solid #2e3b42;border-radius:9px;background:#151d22}
+.overviewToolGroup legend{padding:0 6px;color:#8fb0c2;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.overviewSearchGroup{flex:1 1 330px}
+.overviewSearchGroup #decoderSearch{flex:1 1 210px;min-width:180px}
+@media(max-width:760px){.overviewToolGroup{width:100%;align-items:stretch}.overviewToolGroup>*{flex:1 1 auto}.overviewSearchGroup #decoderSearch{width:100%}}
+
+/* CAN-Übersicht: feste Geometrie, damit wachsende Zähler keine Spalten verschieben. */
+.overviewTableWrap .overviewStatsTable{table-layout:fixed;width:100%;min-width:1500px}
+.overviewStatsTable th,.overviewStatsTable td{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.overviewStatsTable th:nth-child(1),.overviewStatsTable td:nth-child(1){width:95px}
+.overviewStatsTable th:nth-child(2),.overviewStatsTable td:nth-child(2){width:180px}
+.overviewStatsTable th:nth-child(3),.overviewStatsTable td:nth-child(3){width:75px}
+.overviewStatsTable th:nth-child(4),.overviewStatsTable td:nth-child(4){width:50px}
+.overviewStatsTable th:nth-child(5),.overviewStatsTable td:nth-child(5){width:48px}
+.overviewStatsTable th:nth-child(6),.overviewStatsTable td:nth-child(6){width:105px}
+.overviewStatsTable th:nth-child(7),.overviewStatsTable td:nth-child(7),.overviewStatsTable th:nth-child(8),.overviewStatsTable td:nth-child(8){width:75px}
+.overviewStatsTable th:nth-child(n+9):nth-child(-n+16),.overviewStatsTable td:nth-child(n+9):nth-child(-n+16){width:54px}
+.overviewStatsTable th:nth-child(17),.overviewStatsTable td:nth-child(17){width:120px}
+.overviewStatsTable th:nth-child(18),.overviewStatsTable td:nth-child(18){width:95px;font-variant-numeric:tabular-nums}
+.overviewStatsTable th:nth-child(19),.overviewStatsTable td:nth-child(19){width:95px;font-variant-numeric:tabular-nums}
+.overviewStatsTable th:nth-child(20),.overviewStatsTable td:nth-child(20){width:54px}
+@media(max-width:900px){.eventControlGrid{grid-template-columns:1fr}.eventMarkerEntry{grid-template-columns:1fr 1fr}.eventMarkerEntry input{grid-column:1/-1}}
+@media(max-width:620px){.eventMarkerEntry{grid-template-columns:1fr}.eventMarkerEntry input{grid-column:auto}.eventAnalysisControls{align-items:stretch}.eventAnalysisControls>*{width:100%}.eventAnalysisControls label{justify-content:space-between}}
+
+/* V0.13.03-TEST: optionale DBC-Unterstuetzung aus data/dbc/. */
+.dbcSettings h3{margin:0 0 10px;font-size:17px}
+.dbcSettingsRow{align-items:end;gap:10px;flex-wrap:wrap}
+.dbcSettingsRow label{margin:0}
+.dbcSettingsRow .dbcEnableLabel{display:flex;align-items:center;gap:7px;min-height:34px}
+.dbcSettingsRow .dbcEnableLabel input{width:auto;margin:0}
+.dbcSettingsRow select{min-width:240px}
+.dbcStatusLine{margin-top:8px;color:#9bb1bc}
+.dbcDecodedHeader{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:8px;color:#9bb1bc}
+.dbcDecodedHeader b{color:#e8eef2}
+.dbcSignalTable{min-height:150px;max-height:330px}
+.dbcSignalTable table>thead>tr>th{text-align:center!important}
+.dbcSignalTable table>tbody>tr>td{text-align:center}
+.dbcSignalTable table>tbody>tr>td:first-child{text-align:left}
+.dbcEmptyRow td{text-align:center!important;color:#78909b;font-family:system-ui,sans-serif;padding:24px 10px!important}
+
+/* CAN LIVE follows the active transmitting source without changing layout. */
+#canMode.sourceAura[data-live-source="simulator"]{color:#4ee0a1;border-color:#4ee0a1;background:rgba(78,224,161,.10);animation:deacsSimulatorButtonGlow 2.2s ease-in-out infinite}
+#canMode.sourceAura[data-live-source="generator"]{color:#6fc6ff;border-color:#43b2ff;background:rgba(67,178,255,.10);animation:deacsGeneratorButtonGlow 2.2s ease-in-out infinite}
+#canMode.sourceAura[data-live-source="log"]{color:#ffd09a;border-color:#f2a247;background:rgba(242,162,71,.12);animation:deacsLogReplayButtonGlow 2.2s ease-in-out infinite}
+#canMode.offline{animation:none!important}
+@media (prefers-reduced-motion:reduce){#canMode.sourceAura{animation:none!important}}
+
+.eventDetailGrid{display:grid;gap:8px}.eventDetailGrid code{color:#d9e7ee;white-space:normal;word-break:break-word}.eventDetailGrid b{color:#4ee0a1;font-size:1rem}
+.eventByteTableWrap{overflow-x:auto}.eventByteTable{min-width:720px}.eventByteTable th,.eventByteTable td{text-align:center!important}.eventByteCell{min-width:64px}.eventByteCell span,.eventByteCell small{display:block}.eventByteCell span{font-weight:800}.eventByteCell small{font-size:10px;opacity:.7}.eventByteCell.eventByteChanged{background:rgba(205,30,39,.76);color:#fff;box-shadow:inset 0 0 0 1px #ff7a80,0 0 8px rgba(255,55,65,.48)}
