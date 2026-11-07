@@ -41,6 +41,11 @@ class RingBuffer {
     return distance(head, tail);
   }
 
+  void resetStatistics() {
+    __atomic_store_n(&drops_, 0U, __ATOMIC_RELAXED);
+    __atomic_store_n(&highWater_, size(), __ATOMIC_RELAXED);
+  }
+
   uint32_t drops() const { return __atomic_load_n(&drops_, __ATOMIC_RELAXED); }
   size_t highWater() const { return __atomic_load_n(&highWater_, __ATOMIC_RELAXED); }
   static constexpr size_t capacity() { return Capacity - 1U; }

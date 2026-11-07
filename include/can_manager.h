@@ -16,6 +16,7 @@ class CanManager {
   bool setAcceptanceFilter(const uint32_t* ids, uint8_t count);
   void inject(const CanFrame& frame);
   void updateStatistics();
+  void resetDiagnostics();
 
   uint32_t rxCount() const { return rxCount_; }
   uint32_t txCount() const { return txCount_; }
@@ -104,6 +105,8 @@ class CanManager {
   volatile uint32_t driverBusErrors_ = 0;
   volatile uint32_t driverBusErrorDelta_ = 0;
   uint32_t lastDriverBusErrors_ = 0;
+  uint32_t missedBaseline_ = 0, overrunBaseline_ = 0, busErrorBaseline_ = 0;
+  uint32_t arbitrationBaseline_ = 0, txFailedBaseline_ = 0;
   volatile uint32_t driverArbitrationLost_ = 0;
   volatile uint32_t driverTxFailed_ = 0;
   volatile uint32_t driverRxQueued_ = 0;

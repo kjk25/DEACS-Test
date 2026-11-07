@@ -4,6 +4,7 @@
 #include <WebSocketsServer.h>
 #include <FS.h>
 #include "can_frame.h"
+#include "memory_budget.h"
 
 class WebApp {
  public:
@@ -25,13 +26,15 @@ class WebApp {
   uint32_t maxWsBroadcastUs() const { return maxWsBroadcastUs_; }
  private:
   void setupRoutes();
+  void allowLocalFileOrigin();
   size_t statusJson(char* buffer, size_t capacity) const;
   String statusJsonString() const;
   String selfTestJson() const;
-  String diagnosticEventsJson() const;
+  void sendDiagnosticEvents();
   bool frameAllowed(const CanFrame& frame) const;
-  void setServerFilter(const String& idsText, bool enabled);
-  String serverFilterIdsText() const;
+  bool setServerFilter(const String& idsText, bool enabled, bool inverted);
+  bool applyServerFilter(BudgetList<uint32_t>& ids, bool enabled, bool inverted, bool persist);
+  void restoreServerFilter();
   WebServer server_{80};
   WebSocketsServer ws_{81};
   uint32_t lastStatusMs_ = 0;
@@ -51,20 +54,16 @@ class WebApp {
   uint16_t maxRxDrainFrames_ = 0;
   uint32_t rxBacklogEvents_ = 0;
   uint32_t lastRxBacklogEventMs_ = 0;
-  static constexpr uint8_t DIAGNOSTIC_EVENT_COUNT = 24;
   struct DiagnosticEvent { uint32_t ms = 0; char text[64]{}; };
-  DiagnosticEvent diagnosticEvents_[DIAGNOSTIC_EVENT_COUNT]{};
-  uint8_t diagnosticEventWrite_ = 0;
-  uint8_t diagnosticEventUsed_ = 0;
+  BudgetList<DiagnosticEvent> diagnosticEvents_;
   uint32_t lastCanFrameMs_ = 0;
   uint32_t lastWsPacketMs_ = 0;
   uint32_t lastQueueWarningMs_ = 0;
   bool queueWarningActive_ = false;
   uint8_t wsClientCount_ = 0;
-  static constexpr uint8_t MAX_SERVER_FILTER_IDS = 32;
   bool filterEnabled_ = false;
   bool filterInverted_ = true;
-  uint32_t filterIds_[MAX_SERVER_FILTER_IDS]{};
-  uint8_t filterIdCount_ = 0;
+  uint32_t filterRevision_ = 0;
+  BudgetList<uint32_t> filterIds_;
 };
 extern WebApp Web;

@@ -1,4 +1,4 @@
 @echo off
-cd /d "%~dp0..\firmware"
-python -m platformio run -t uploadfs
+cd /d "%~dp0.."
+python -m platformio run -e esp32s3_n16r8 -t uploadfs --upload-port COM9
 pause

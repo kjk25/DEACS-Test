@@ -1,11 +1,13 @@
-# DEACS Styleguide 1.0
+# DEACS Styleguide 1.1
+
+Stand: **DEACS V0.13.44**
 
 - Die bestehende DEACS-Optik bleibt erhalten.
 - ID steht in Tabellen vor Label.
 - Tabellen verwenden nur einen äußeren Rahmen; markierte Zeilen erhalten Hintergrund und linke Akzentlinie.
 - Eingabefelder in Tabellen wirken im Ruhezustand wie normale Zellen und werden erst bei Hover/Fokus deutlich.
 - CAN-ID, Datenbytes und ASCII verwenden Monospace.
--- Jeder dargestellte Hexwert beginnt global mit `0x` und einem kleinen `x`. Das gilt insbesondere für CAN-IDs, Datenbytes, Tabellenzellen, Vorschauen und Detailanzeigen in allen Tabs.
+- In der globalen HEX-Anzeige beginnt jeder dargestellte Hexwert mit `0x` und einem kleinen `x`. Das gilt insbesondere für CAN-IDs, Datenbytes, Tabellenzellen, Vorschauen und Detailanzeigen in allen Tabs. In der globalen DEC-Anzeige werden CAN-IDs dezimal ohne `0x` dargestellt; Dateiformate und API-Nutzdaten bleiben davon unberührt.
 - Grün kennzeichnet aktive/primäre Aktionen, Rot Fehler oder gefährliche Aktionen.
 - Keine zusätzlichen Designrichtungen oder fremden UI-Stile übernehmen.
 
@@ -51,7 +53,7 @@ Tooltips sind Bestandteil des verbindlichen DEACS-Stils.
 
 - Blau: Werkzeuge, Filter, Generator und Einstellungen.
 - Grün: Simulator, Live-Daten und erfolgreiche Zustände.
-- Orange: Log, Import, Export und Wiedergabe.
+- Orange: Log, Dateiimport/-export und Wiedergabe, sofern diese eine eigene Funktionsgruppe oder einen erklärenden Tooltip bilden.
 - Rot: Fehler, Warnungen und kritische Aktionen.
 - Neutralgrau: allgemeine Informationen ohne Funktionsfarbe.
 
@@ -79,9 +81,9 @@ tooltip-left
 tooltip-right
 ```
 
-Native Browser-Tooltips über `title` dürfen für einfache technische Hinweise
-bestehen bleiben. Für sichtbare, erklärende Bedienhilfen ist der DEACS-
-`data-tooltip`-Stil zu verwenden.
+Native Browser-Tooltips über `title` sind nur für knappe technische Bezeichner
+ohne Erklärcharakter zulässig. Für sichtbare Bedienhilfen und Erläuterungen
+ist verbindlich der DEACS-`data-tooltip`-Stil zu verwenden.
 
 
 ## Einklappbare Funktionsbereiche
@@ -135,6 +137,17 @@ data-tooltip="Erklärung"
 zusammen mit einer DEACS-Farbklasse. Falls JavaScript den Text dynamisch setzt,
 muss es `element.dataset.tooltip` verwenden und ein vorhandenes `title`-
 Attribut entfernen.
+
+
+## Import, Export und Dateiauswahl
+
+- Import und Export werden als klar beschriftete Sekundäraktionen dargestellt.
+- Das eigentliche HTML-Dateifeld bleibt verborgen; geöffnet wird es über einen normalen DEACS-Button.
+- Ein Import darf bestehende Benutzerdaten nicht ohne ausdrückliche Bestätigung ersetzen.
+- Erfolgreiche Aktionen, übersprungene ungültige Einträge und Fehler werden über die vorhandenen DEACS-Hinweise gemeldet.
+- Dateiformate enthalten eine eindeutige Formatkennung und Versionsnummer, damit inkompatible Dateien sicher abgelehnt werden können.
+- Innerhalb einer bestehenden grünen Simulatorgruppe bleiben Import und Export Teil dieser Gruppe; dafür wird keine zusätzliche orange Karte eingeführt.
+- Seltene Dateiaktionen dürfen gemeinsam mit weiteren sekundären Aktionen umbrechen, ohne Eingabefelder oder Tabellen zu verschieben.
 
 
 ## Verbindliche Seitenstruktur
@@ -197,6 +210,15 @@ statt abweichende Höhen, Abstände oder Rundungen lokal festzulegen.
 - Interaktive Zellinhalte füllen die komplette Zellenbreite und zentrieren ihren Inhalt intern.
 
 ### TX- und Simulator-Eingabezeilen
+
 - Beschriftungen stehen horizontal exakt mittig über dem zugehörigen Feld.
 - ID, DLC, D0-D7 und Intervall verwenden dieselbe geometrische Mittelachse.
 - Die Regel gilt für die tatsächlichen Layout-Klassen der Seite; TX verwendet `.txFrameLine`.
+
+
+## Responsive Verhalten
+
+- Funktionsgruppen und Tabellen bleiben auf schmalen Ansichten horizontal beziehungsweise vertikal erreichbar; Inhalte dürfen nicht unzugänglich abgeschnitten werden.
+- Eingabezeilen dürfen in definierte Rasterzeilen umbrechen. Die Zuordnung von Beschriftung und Eingabefeld bleibt dabei eindeutig.
+- Aktionsgruppen dürfen umbrechen; Schaltflächen behalten die zentral definierte Höhe und ausreichende Bedienfläche.
+- Responsive Regeln dürfen auf breiten Ansichten keine Sprünge oder Verschiebungen beim Aktivieren einer Funktion verursachen.

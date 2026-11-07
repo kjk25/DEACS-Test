@@ -5,6 +5,7 @@
 #include "web_app.h"
 #include "logger.h"
 #include "led.h"
+#include "usb_tunnel.h"
 
 void setup() {
   // First instruction: keep CAN transceiver TXD recessive during boot.
@@ -16,6 +17,8 @@ void setup() {
   pinMode(Config::CAN_LISTEN_TX_DUMMY_PIN, OUTPUT);
   digitalWrite(Config::CAN_LISTEN_TX_DUMMY_PIN, HIGH);
 
+  Serial.setRxBufferSize(4096);
+  Serial.setTxBufferSize(2048);
   Serial.begin(Config::SERIAL_BAUD);
   delay(100);
   Led.begin();
@@ -36,6 +39,7 @@ void setup() {
                 static_cast<unsigned long>(Config::TWAI_RX_QUEUE_SIZE),
                 static_cast<unsigned long>(Config::CAN_QUEUE_SIZE));
   Serial.printf("WLAN: %s / %s, http://192.168.4.1\n", Config::AP_SSID, Config::AP_PASSWORD);
+  Usb.begin();
 }
 
 void loop() {

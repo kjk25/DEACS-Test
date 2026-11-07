@@ -1,3 +1,119 @@
+## 0.13.63-TEST
+
+- Test-Repository auf aktuellen DEACS-Stand angehoben.
+- ESP32-S3 N16R8, COM9, direkte USB-Oberflaeche und DE/EN/JA.
+- BMW-E90-Tacho-Demo mit zyklischer Zuendung, Lampen, Tankverbrauch und Reset.
+- Webflash-Image fuer 16 MB Flash; neues Image nicht fuer ESP32-WROOM.
+
+# DEACS V0.13.49
+
+- Nur noch ESP32-S3 N16R8: Standard-Build und Webflash mit 16 MB Flash und 8 MB PSRAM.
+- Upload und serieller Monitor verwenden COM21.
+- Webflash und USB-Oberfläche neu erstellt.
+
+# DEACS V0.13.48
+
+- Simulator: stabile Beispieldaten und Datenmodus je Frame (Fest, Zufall, Zähler, Laufbit, Sinus, Sägezahn, Rechteck, LFSR).
+- Modus pro Frame speichern und exportieren; unabhängige Generatorzustände im Browser und auf dem ESP32.
+
+# DEACS V0.13.44
+
+- Versionszusatz „-TEST“ entfernt; Versionsangaben und Release-Dateien auf 0.13.44 aktualisiert.
+- GUI-Version im Kopf- und Fußbereich unabhängig von der verbundenen Firmware anzeigen, auch ohne Verbindung.
+- Monitor-Zähler „Angezeigt / Displayed“ zählt alle gefilterten, durch Scrollen erreichbaren Frames statt nur die gerenderten Zeilen; irreführenden Hinweis „max. 1200“ entfernt.
+- USB-POST-Inhalte direkt über `Request.arrayBuffer()` lesen, damit ein nicht bereitgestellter Body-Stream Simulator-Formulare und DBC-Uploads nicht leert.
+
+# DEACS V0.13.43-TEST – Deutsch und Englisch
+
+- USB-POST-Inhalte direkt über `Request.arrayBuffer()` lesen; ein nicht bereitgestellter `Request.body`-Stream darf Simulator-Formulare und DBC-Uploads nicht leeren. Regressionstest ohne Browser oder Hardware ergänzt.
+- Sprachumschaltung in der Kopfleiste ohne Neuladen der Oberfläche.
+- Englische Übersetzungen für Bedienelemente, Hilfetexte, Dialoge, Meldungen und dynamische Statusanzeigen.
+- Sprachauswahl im Browser und in Settings-Dateien speichern; ältere Settings-Dateien bleiben kompatibel.
+- CAN-Daten, eigene Labels, Dateinamen und laufende Simulatoren bleiben beim Umschalten erhalten.
+- Englische Oberfläche auch in der eigenständigen USB-HTML-Datei verfügbar.
+- DE/EN-Schalter rechtsbündig und mit Abstand neben den Tabs, ohne zusätzliche Sprachbeschriftung.
+- Browser-RAM-Budget anhand des gemeldeten Heaps oder einer geräteabhängigen Schätzung bestimmen; pauschales 128-MiB-RAM-Ersatzbudget ersetzt.
+- Simulatoren bei vollem Monitor weiterlaufen lassen, verworfene Frames zählen und kleine USB-Status-/Steuerantworten weiterhin zulassen.
+- Grünes Leuchten von CAN LIVE auch ohne aktive Simulator-/Generator-/Log-TX-Quelle wiederhergestellt; bei Trennung, Listen-only und Busfehlern deaktiviert.
+- CAN LIVE zeigt aktive Quellen als SIM (grün), GEN (blau) und LOG (orange), bei gleichzeitigem Betrieb mit getrennt gefärbten Kennzeichen. Quellenaktivität wird unabhängig vom Live-TX-Häkchen dargestellt.
+
+# DEACS V0.13.42-TEST – Einstellungen und CAN-Monitor
+
+- Einstellungen als Datei speichern und laden, einschließlich Filter, Simulator, Generator, TX, Log-Wiedergabe, Decodierung und Label Dictionary.
+- CAN-Filter und DBC-Auswahl nach Neuladen wiederherstellen; Simulatorstatus mit dem ESP32 synchronisieren.
+- CAN-Monitor leeren, Scrollposition bei ausgeschaltetem Autoscroll erhalten und Speicheranzeige korrigieren.
+- Verarbeitung hoher RX-Datenraten durch begrenzte Browser-Warteschlangen und portionierte Darstellung entlasten.
+- Simulator-Upload prüft erforderliche Parameter und bestätigt ID, DLC und Intervall; Hardwaretests prüfen IDs und Nutzdaten.
+- Kleine USB-POST-Anfragen übertragen HTTP-Header und Formulardaten zusammen; Simulatorstart prüft die Bestätigung des ESP32 auf abweichende Werte.
+- VS-Code-Upload und Uploadskripte auf ESP32-S3 und COM7 eingestellt.
+
+# DEACS V0.13.41-TEST ? Stack?berlauf beim Statusabruf behoben
+
+- 4096-Byte-Statuspuffer aus dem Stack der HTTP-Verarbeitung in statischen Speicher verschoben.
+- Am S3 mit 0.13.40 wurde beim USB-Statusabruf ein Stack-canary-Absturz von loopTask nachgewiesen.
+- Formatargumente der Statusausgabe werden jetzt vom Compiler gepr?ft.
+
+# DEACS V0.13.40-TEST ? USB-Tunnel ohne blockierende TCP-Transfers
+
+- TCP-Lesen und -Schreiben im USB-Worker auf nicht blockierende Socket-Aufrufe umgestellt.
+- Teilweise angenommene TCP-Schreibvorg?nge werden begrenzt gepuffert; USB-ACK erst nach vollst?ndiger ?bernahme.
+- Diagnosewerkzeug f?r echte USB-Ger?te erg?nzt.
+
+# DEACS V0.13.39-TEST ? USB-Hilfetext sichtbar
+
+- USB-Hilfetexte unterhalb der Schaltfl?chen angeordnet und auch bei Klick/Fokus sichtbar.
+- Hilfetext unterscheidet Verbinden, Verbindungsaufbau und Trennen.
+
+# DEACS V0.13.38-TEST ? Simulatorstart ?ber Browser-USB
+
+- USB-HTTP-Anfragen werden sequenziell verarbeitet, damit parallele Abfragen die Tunnelkan?le nicht belegen.
+- Mehrfaches Starten w?hrend des Simulator-Uploads gesperrt; DLC beim Upload ber?cksichtigt.
+- Fehlermeldungen nennen den betroffenen Ladeschritt und unterscheiden HTTP-/USB-Fehler vom Speicherbudget.
+- Ausgeblendete Seitennavigation und Abstand bei Simulator-Aktionen korrigiert.
+
+# DEACS V0.13.37-TEST – Simulator einmalig oder endlos
+
+- Eigene Auswahl „Wiederholung: Einmalig / Endlos“ im Simulator ergänzt, unabhängig von der Log-Wiedergabe.
+- Browser- und ESP32-Simulator erzeugen im Einmallauf jeden aktivierten Frame einmal nach dessen Intervall und stoppen automatisch.
+- Simulator-Auswahl wird gespeichert und während des Laufs gesperrt.
+- ESP32-Status um Laufkennung und ausstehende Einträge erweitert; veraltete Statusmeldungen beenden keinen neueren Lauf in der Oberfläche.
+
+# DEACS V0.13.36-TEST – USB direkt im Browser
+
+- Python-Brücke durch direkte Web-Serial-Kommunikation im Browser ersetzt.
+- Vollständige, lokal ohne Server nutzbare USB-HTML-Datei und Download aus der WLAN-Oberfläche ergänzt.
+- USB-Portauswahl, bevorzugte Wiederverbindung bereits freigegebener Ports und manuelles Trennen ergänzt.
+- HTTP, Multipart-Dateiübertragung und WebSocket inklusive Ping/Pong direkt über den bestehenden seriellen Firmwaretunnel umgesetzt.
+- Python-Brückenprogramm, Abhängigkeit und Startaufgabe entfernt; Firmware/LittleFS-Build erzeugt die USB-Seite automatisch.
+
+# DEACS V0.13.35-TEST – USB bevorzugen
+
+- Lokale Python-Brücke mit serieller USB-Kommunikation und WLAN-Rückfall ergänzt.
+- HTTP/WebSocket inklusive Dateioperationen über den vorhandenen Firmware-Server getunnelt.
+- USB wird nach DEACS-Handshake bevorzugt; abgebrochene Befehle werden beim Wechsel nicht automatisch wiederholt.
+- Verwendeter Transport wird in der Oberfläche angezeigt.
+- Native S3-USB-Umgebung `esp32s3_n16r8_usb` ergänzt; serieller Monitor/USB-UART auf 921600 Baud gesetzt.
+
+# DEACS V0.13.34-TEST – Speicherbudget und Endlos-Wiedergabe
+
+- Versionsnummer in Firmware, VERSION.txt, Web-Cache und aktueller Dokumentation vereinheitlicht.
+- Log-Wiedergabe im Simulator standardmäßig auf „Endlos wiederholen“ gesetzt; Auswahl wird im Browser gespeichert.
+- Große Wiedergabepakete werden in begrenzten Portionen verarbeitet, damit Stoppen auch bei gleichen Zeitstempeln bedienbar bleibt.
+
+- Simulator, Serverfilter und Diagnosehistorie wachsen bedarfsgerecht, bevorzugt im PSRAM; gemeinsames 80-%-Budget je Heap-Pool.
+- LittleFS-Schreibgrenze für DBC-Uploads und ESP32-Logs; DBC-Austausch über temporäre Datei.
+- Browserlisten und Importe verwenden Speicherprüfungen statt der bisherigen Eintragslimits; große Tabellen erhalten Seitennavigation.
+- Browser-Logging berücksichtigt die Speicherquote und erhält fehlgeschlagene Schreibchargen für den Export.
+- Getrennte Speicherauslastung und gekennzeichnete Browser-Schätzungen in der Diagnose.
+
+# DEACS V0.13.33-TEST – Simulator-Import und -Export
+
+- Simulator-Frames können vollständig als JSON-Datei exportiert werden.
+- Der Import stellt Reihenfolge, ID, Label, DLC, Datenbytes, Intervall, Aktivzustand und Quelle wieder her.
+- Beim Import können vorhandene Simulator-Frames ersetzt oder um die importierten Frames ergänzt werden; der Vorgang kann auch abgebrochen werden.
+- Ungültige Einträge werden sicher übersprungen und im Ergebnis gemeldet.
+- API-, Hardware-, ISOCANFD- und Styleguide-Dokumentation auf den aktuellen Firmwarestand gebracht.
+
 # DEACS V0.13.05-TEST – DBC-Verwaltung für Endanwender
 
 - DBC-Dateien können direkt unter Settings im Browser auf den ESP32 geladen und gelöscht werden.

@@ -66,6 +66,8 @@ bool CanManager::installDriver() {
     filter.single_filter = true;
   }
   if (twai_driver_install(&general, &timing, &filter) != ESP_OK) return false;
+  missedBaseline_ = overrunBaseline_ = busErrorBaseline_ = 0;
+  arbitrationBaseline_ = txFailedBaseline_ = lastDriverBusErrors_ = 0;
   if (twai_start() != ESP_OK) {
     twai_driver_uninstall();
     return false;
@@ -135,7 +137,11 @@ void CanManager::rxTask() {
 
     // A large drain budget empties short TWAI bursts before yielding. The hard
     // limit still guarantees scheduler fairness on a continuously full bus.
-    taskYIELD();
+    // taskYIELD alone only yields to equal-priority tasks. Under continuous
+    // RX the high-priority receiver must also let the lower-priority main
+    // loop drain the ring and service HTTP/WebSocket and control commands.
+    if (burst >= Config::CAN_RX_BURST_MAX) vTaskDelay(1);
+    else taskYIELD();
   }
 }
 
@@ -246,8 +252,8 @@ void CanManager::updateDriverStatus() {
   if (!running_ || driverChanging_) return;
   twai_status_info_t status{};
   if (twai_get_status_info(&status) == ESP_OK) {
-    twaiRxMissed_ = status.rx_missed_count;
-    twaiRxOverrun_ = status.rx_overrun_count;
+    twaiRxMissed_ = status.rx_missed_count - missedBaseline_;
+    twaiRxOverrun_ = status.rx_overrun_count - overrunBaseline_;
     txErrorCounter_ = status.tx_error_counter;
     // In normal mode a rising TX error counter means transmitted frames are
     // not acknowledged, even when no separate TX_FAILED alert is delivered.
@@ -256,9 +262,9 @@ void CanManager::updateDriverStatus() {
     const uint32_t nativeBusErrors = status.bus_error_count;
     driverBusErrorDelta_ = nativeBusErrors - lastDriverBusErrors_;
     lastDriverBusErrors_ = nativeBusErrors;
-    driverBusErrors_ = nativeBusErrors;
-    driverArbitrationLost_ = status.arb_lost_count;
-    driverTxFailed_ = status.tx_failed_count;
+    driverBusErrors_ = nativeBusErrors - busErrorBaseline_;
+    driverArbitrationLost_ = status.arb_lost_count - arbitrationBaseline_;
+    driverTxFailed_ = status.tx_failed_count - txFailedBaseline_;
     driverRxQueued_ = status.msgs_to_rx;
     driverTxQueued_ = status.msgs_to_tx;
     switch (status.state) {
@@ -282,6 +288,33 @@ void CanManager::poll() {
 
   handleAlerts();
   updateStatistics();
+}
+
+void CanManager::resetDiagnostics() {
+  // Rebase cumulative hardware counters without stopping CAN or discarding frames.
+  twai_status_info_t status{};
+  if (running_ && !driverChanging_ && twai_get_status_info(&status) == ESP_OK) {
+    missedBaseline_ = status.rx_missed_count;
+    overrunBaseline_ = status.rx_overrun_count;
+    busErrorBaseline_ = lastDriverBusErrors_ = status.bus_error_count;
+    arbitrationBaseline_ = status.arb_lost_count;
+    txFailedBaseline_ = status.tx_failed_count;
+  }
+  errorCount_ = busOffCount_ = busErrorCount_ = rxQueueFullAlerts_ = 0;
+  errorPassiveCount_ = txFailedCount_ = arbitrationLostAlerts_ = 0;
+  aboveWarningAlerts_ = belowWarningAlerts_ = busRecoveredAlerts_ = 0;
+  lastAlertMask_ = alertReadCount_ = 0;
+  strlcpy(lastAlertMaskHex_, "0x00000000", sizeof(lastAlertMaskHex_));
+  strlcpy(lastAlertText_, "NONE", sizeof(lastAlertText_));
+  twaiRxMissed_ = twaiRxOverrun_ = driverBusErrors_ = driverBusErrorDelta_ = 0;
+  driverArbitrationLost_ = driverTxFailed_ = maxRxBurst_ = 0;
+  rxCount_ = txCount_ = ringWriteCount_ = ringReadCount_ = 0;
+  lastRxCount_ = lastTxCount_ = lastRingWriteCount_ = lastRingReadCount_ = 0;
+  rxRate_ = txRate_ = ringWriteRate_ = ringReadRate_ = 0;
+  busLoadPercent_ = 0;
+  lastStatsMs_ = millis();
+  rxPinSamples_ = rxPinLowSamples_ = rxPinLowPercent_ = 0;
+  queue_.resetStatistics();
 }
 
 void CanManager::updateStatistics() {

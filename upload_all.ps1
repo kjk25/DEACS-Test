@@ -1,5 +1,2 @@
-$ErrorActionPreference = "Stop"
-pio run
-pio run -t upload
-pio run -t uploadfs
-Write-Host "DEACS: Firmware und LittleFS erfolgreich hochgeladen." -ForegroundColor Green
+$ErrorActionPreference = 'Stop'
+& (Join-Path $PSScriptRoot 'tools/upload_all.ps1')

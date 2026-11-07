@@ -1,7 +1,9 @@
 $ErrorActionPreference = 'Stop'
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$buildDir = Join-Path $projectRoot '.pio\build\esp32dev'
+$previousBuildDir = $env:PLATFORMIO_BUILD_DIR
+$env:PLATFORMIO_BUILD_DIR = Join-Path $projectRoot '.pio\webflash'
+$buildDir = Join-Path $env:PLATFORMIO_BUILD_DIR 'esp32s3_n16r8'
 $configPath = Join-Path $projectRoot 'include\config.h'
 $pioHome = Join-Path $env:USERPROFILE '.platformio'
 $python = Join-Path $pioHome 'penv\Scripts\python.exe'
@@ -10,10 +12,10 @@ $bootApp = Join-Path $pioHome 'packages\framework-arduinoespressif32\tools\parti
 
 Push-Location $projectRoot
 try {
-  & pio run
+  & $python -m platformio run -e esp32s3_n16r8
   if ($LASTEXITCODE -ne 0) { throw 'Firmware-Build fehlgeschlagen.' }
 
-  & pio run -t buildfs
+  & $python -m platformio run -e esp32s3_n16r8 -t buildfs
   if ($LASTEXITCODE -ne 0) { throw 'LittleFS-Build fehlgeschlagen.' }
 
   $required = @(
@@ -38,44 +40,30 @@ try {
   New-Item -ItemType Directory -Path $releaseDir -Force | Out-Null
   $output = Join-Path $releaseDir "DEACS_V${version}_webflash.bin"
 
-  & $python $esptool --chip esp32 merge_bin `
+  & $python $esptool --chip esp32s3 merge_bin `
     -o $output `
-    --flash_mode dio `
-    --flash_freq 40m `
-    --flash_size 4MB `
-    0x1000 (Join-Path $buildDir 'bootloader.bin') `
+    --flash_mode qio `
+    --flash_freq 80m `
+    --flash_size 16MB `
+    0x0 (Join-Path $buildDir 'bootloader.bin') `
     0x8000 (Join-Path $buildDir 'partitions.bin') `
     0xE000 $bootApp `
     0x10000 (Join-Path $buildDir 'firmware.bin') `
-    0x290000 (Join-Path $buildDir 'littlefs.bin')
+    0xC90000 (Join-Path $buildDir 'littlefs.bin')
   if ($LASTEXITCODE -ne 0) { throw 'Gesamt-BIN konnte nicht erzeugt werden.' }
 
-  $outputBytes = [System.IO.File]::ReadAllBytes($output)
-  $sensitivePaths = @(
-    $env:USERPROFILE,
-    ($env:USERPROFILE -replace '\\', '/')
-  ) | Where-Object { $_ }
-
-  foreach ($path in $sensitivePaths) {
-    $needle = [System.Text.Encoding]::UTF8.GetBytes($path)
-    if ($needle.Length -eq 0 -or $needle.Length -gt $outputBytes.Length) { continue }
-
-    for ($i = 0; $i -le $outputBytes.Length - $needle.Length; $i++) {
-      $match = $true
-      for ($j = 0; $j -lt $needle.Length; $j++) {
-        if ($outputBytes[$i + $j] -ne $needle[$j]) { $match = $false; break }
-      }
-      if ($match) {
-        $outputBytes[$i] = [byte][char]'.'
-        for ($j = 1; $j -lt $needle.Length; $j++) { $outputBytes[$i + $j] = 0 }
-      }
+  # Preserve the test repository's release check for local user-profile paths.
+  $imageText = [System.Text.Encoding]::UTF8.GetString([System.IO.File]::ReadAllBytes($output))
+  foreach ($profileVariant in @($env:USERPROFILE, ($env:USERPROFILE -replace '\\', '/'))) {
+    if ($profileVariant -and $imageText.Contains($profileVariant)) {
+      throw 'Das Release-Image enthaelt einen lokalen Benutzerpfad. Prefix-Mapping pruefen.'
     }
   }
-  [System.IO.File]::WriteAllBytes($output, $outputBytes)
 
   Write-Host "`nWeb-Flasher-Datei erstellt: $output" -ForegroundColor Green
   Write-Host 'Flash-Adresse in esptool-js: 0x0' -ForegroundColor Green
 }
 finally {
+  $env:PLATFORMIO_BUILD_DIR = $previousBuildDir
   Pop-Location
 }

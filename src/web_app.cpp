@@ -3,6 +3,7 @@
 #include "can_manager.h"
 #include "simulator.h"
 #include "logger.h"
+#include "usb_tunnel.h"
 #include <WiFi.h>
 #include <LittleFS.h>
 #include <esp_system.h>
@@ -12,11 +13,42 @@
 WebApp Web;
 
 namespace {
+constexpr char FILTER_PATH[] = "/can-filter.bin";
+constexpr char FILTER_TEMP_PATH[] = "/can-filter.tmp";
+constexpr uint32_t FILTER_MAGIC = 0x31464344U; // DCF1
+
+bool configureHardwareFilter(const BudgetList<uint32_t>& ids, bool enabled, bool inverted) {
+  uint32_t hardwareIds[32]{};
+  const bool useHardwareFilter = enabled && !inverted && ids.size() <= 32U;
+  if (useHardwareFilter) for (size_t i = 0; i < ids.size(); ++i) hardwareIds[i] = ids[i];
+  return Can.setAcceptanceFilter(useHardwareFilter ? hardwareIds : nullptr,
+      useHardwareFilter ? static_cast<uint8_t>(ids.size()) : 0);
+}
+
+bool saveFilter(const BudgetList<uint32_t>& ids, bool enabled, bool inverted) {
+  const uint32_t header[]{FILTER_MAGIC, (enabled ? 1U : 0U) | (inverted ? 2U : 0U), static_cast<uint32_t>(ids.size())};
+  if (!MemoryBudget::canWrite(sizeof(header) + ids.size() * sizeof(uint32_t))) return false;
+  File file = LittleFS.open(FILTER_TEMP_PATH, FILE_WRITE);
+  if (!file) return false;
+  bool ok = file.write(reinterpret_cast<const uint8_t*>(header), sizeof(header)) == sizeof(header);
+  for (size_t i = 0; ok && i < ids.size(); ++i) {
+    const uint32_t id = ids[i];
+    ok = file.write(reinterpret_cast<const uint8_t*>(&id), sizeof(id)) == sizeof(id);
+    if ((i & 1023U) == 0U) delay(0);
+  }
+  file.flush();file.close();
+  if (ok) ok = LittleFS.rename(FILTER_TEMP_PATH, FILTER_PATH);
+  if (!ok) LittleFS.remove(FILTER_TEMP_PATH);
+  return ok;
+}
+
 File dbcUploadFile;
 String dbcUploadPath;
 size_t dbcUploadSize = 0U;
 bool dbcUploadFailed = false;
 
+bool appendFormat(char* buffer, size_t capacity, size_t& used, const char* format, ...)
+    __attribute__((format(printf, 4, 5)));
 bool appendFormat(char* buffer, size_t capacity, size_t& used, const char* format, ...) {
   if (!buffer || used >= capacity) return false;
   va_list args;
@@ -63,6 +95,7 @@ void WebApp::begin() {
   minFreeHeap_ = ESP.getFreeHeap();
   minLargestHeapBlock_ = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
   addDiagnosticEvent("Systemstart");
+  restoreServerFilter();
   WiFi.mode(WIFI_AP);
   if (!WiFi.softAP(Config::AP_SSID, Config::AP_PASSWORD)) {
     Serial.println("[WIFI] Access Point konnte nicht gestartet werden");
@@ -70,6 +103,8 @@ void WebApp::begin() {
     Serial.printf("[WIFI] AP %s gestartet, IP %s\n", Config::AP_SSID,
                   WiFi.softAPIP().toString().c_str());
   }
+  const char* headers[] = {"Origin"};
+  server_.collectHeaders(headers, 1);
   setupRoutes();
   server_.begin();
   ws_.begin();
@@ -81,11 +116,11 @@ void WebApp::begin() {
     if (type == WStype_CONNECTED) {
       if (wsClientCount_ < 255) ++wsClientCount_;
       addDiagnosticEvent("Browser verbunden");
-      Serial.printf("[WS] Client %u verbunden\n", client);
+      if (!Usb.active()) Serial.printf("[WS] Client %u verbunden\n", client);
     } else if (type == WStype_DISCONNECTED) {
       if (wsClientCount_ > 0) --wsClientCount_;
       addDiagnosticEvent("Browser getrennt");
-      Serial.printf("[WS] Client %u getrennt\n", client);
+      if (!Usb.active()) Serial.printf("[WS] Client %u getrennt\n", client);
     } else if (type == WStype_TEXT && payload && length > 3U && length < 80U) {
       char text[80]{}; memcpy(text, payload, length); text[length] = '\0';
       unsigned long id = 0; unsigned ext = 0, rtr = 0; char data[17]{};
@@ -105,8 +140,62 @@ void WebApp::begin() {
   });
 }
 
+void WebApp::allowLocalFileOrigin() {
+  // file:// USB HTML may fall back to the AP. Do not allow arbitrary web origins.
+  if (server_.header("Origin") == "null") {
+    server_.sendHeader("Access-Control-Allow-Origin", "null");
+    server_.sendHeader("Vary", "Origin");
+  }
+}
+
 void WebApp::setupRoutes() {
+  for (const char* path : {"/i18n-en.js", "/i18n-ja.js", "/i18n.js", "/bmw-e90.js"}) {
+    server_.on(path, HTTP_GET, [this, path]() {
+      allowLocalFileOrigin();
+      File file = LittleFS.open(path, FILE_READ);
+      if (!file) { server_.send(404, "text/plain", "Language asset missing - rebuild and upload LittleFS"); return; }
+      server_.sendHeader("Cache-Control", "no-store");
+      server_.streamFile(file, "application/javascript");
+      file.close();
+    });
+  }
+  server_.on("/web-serial.js", HTTP_GET, [this]() {
+    allowLocalFileOrigin();
+    File file = LittleFS.open("/web-serial.js", FILE_READ);
+    if (!file) { server_.send(404, "text/plain", "web-serial.js missing"); return; }
+    server_.sendHeader("Cache-Control", "no-store");
+    server_.streamFile(file, "application/javascript");file.close();
+  });
+  server_.on("/usb.html", HTTP_GET, [this]() {
+    allowLocalFileOrigin();
+    File file = LittleFS.open("/usb.html", FILE_READ);
+    if (!file) { server_.send(404, "text/plain", "usb.html missing - rebuild and upload LittleFS"); return; }
+    server_.sendHeader("Content-Disposition", "attachment; filename=DEACS_USB.html");
+    server_.sendHeader("Cache-Control", "no-store");
+    server_.streamFile(file, "text/html");file.close();
+  });
+  server_.on("/memory-budget.js", HTTP_GET, [this]() {
+    allowLocalFileOrigin();
+    File file = LittleFS.open("/memory-budget.js", FILE_READ);
+    if (!file) { server_.send(404, "text/plain", "memory-budget.js missing"); return; }
+    server_.sendHeader("Cache-Control", "no-store");
+    server_.streamFile(file, "application/javascript");
+    file.close();
+  });
+  server_.on("/api/filter/ids", HTTP_GET, [this]() {
+    allowLocalFileOrigin();
+    server_.setContentLength(CONTENT_LENGTH_UNKNOWN);
+    server_.send(200, "text/plain", "");
+    char part[16];
+    for (size_t i = 0; i < filterIds_.size(); ++i) {
+      snprintf(part, sizeof(part), "%s%lX", i ? " " : "", static_cast<unsigned long>(filterIds_[i]));
+      server_.sendContent(part);
+      delay(0);
+    }
+    server_.sendContent("");
+  });
   server_.on("/", HTTP_GET, [this]() {
+    allowLocalFileOrigin();
     File file = LittleFS.open("/index.html", "r");
     if (!file) {
       server_.send(500, "text/plain", "index.html missing - run: pio run -t uploadfs");
@@ -119,10 +208,14 @@ void WebApp::setupRoutes() {
 
   server_.on("/api/dbc/upload", HTTP_POST,
     [this]() {
+    allowLocalFileOrigin();
       if (dbcUploadFile) dbcUploadFile.close();
       if (dbcUploadFailed) {
-        if (dbcUploadPath.length()) LittleFS.remove(dbcUploadPath);
+        if (dbcUploadPath.length()) LittleFS.remove("/dbc-upload.tmp");
         server_.send(400, "application/json", "{\"ok\":false,\"error\":\"upload failed\"}");
+      } else if (!LittleFS.rename("/dbc-upload.tmp", dbcUploadPath)) {
+        LittleFS.remove("/dbc-upload.tmp");
+        server_.send(500, "application/json", "{\"ok\":false,\"error\":\"rename failed\"}");
       } else {
         server_.send(200, "application/json", "{\"ok\":true,\"size\":" + String(dbcUploadSize) + "}");
       }
@@ -139,26 +232,28 @@ void WebApp::setupRoutes() {
         }
         if (!LittleFS.exists("/dbc")) LittleFS.mkdir("/dbc");
         dbcUploadPath = "/dbc/" + name;
-        dbcUploadFile = LittleFS.open(dbcUploadPath, FILE_WRITE);
+        LittleFS.remove("/dbc-upload.tmp");
+        dbcUploadFile = LittleFS.open("/dbc-upload.tmp", FILE_WRITE);
         if (!dbcUploadFile) dbcUploadFailed = true;
       } else if (upload.status == UPLOAD_FILE_WRITE) {
         if (dbcUploadFailed) return;
-        if (dbcUploadSize + upload.currentSize > Config::DBC_MAX_FILE_SIZE) {
-          dbcUploadFailed = true;if (dbcUploadFile) dbcUploadFile.close();if (dbcUploadPath.length()) LittleFS.remove(dbcUploadPath);return;
+        if (!MemoryBudget::canWrite(upload.currentSize)) {
+          dbcUploadFailed = true;if (dbcUploadFile) dbcUploadFile.close();if (dbcUploadPath.length()) LittleFS.remove("/dbc-upload.tmp");return;
         }
         if (!dbcUploadFile || dbcUploadFile.write(upload.buf, upload.currentSize) != upload.currentSize) {
-          dbcUploadFailed = true;if (dbcUploadFile) dbcUploadFile.close();if (dbcUploadPath.length()) LittleFS.remove(dbcUploadPath);return;
+          dbcUploadFailed = true;if (dbcUploadFile) dbcUploadFile.close();if (dbcUploadPath.length()) LittleFS.remove("/dbc-upload.tmp");return;
         }
         dbcUploadSize += upload.currentSize;
       } else if (upload.status == UPLOAD_FILE_END) {
         if (dbcUploadFile) dbcUploadFile.close();
-        if (!dbcUploadSize) {dbcUploadFailed = true;if (dbcUploadPath.length()) LittleFS.remove(dbcUploadPath);}
+        if (!dbcUploadSize) {dbcUploadFailed = true;if (dbcUploadPath.length()) LittleFS.remove("/dbc-upload.tmp");}
       } else if (upload.status == UPLOAD_FILE_ABORTED) {
-        dbcUploadFailed = true;if (dbcUploadFile) dbcUploadFile.close();if (dbcUploadPath.length()) LittleFS.remove(dbcUploadPath);
+        dbcUploadFailed = true;if (dbcUploadFile) dbcUploadFile.close();if (dbcUploadPath.length()) LittleFS.remove("/dbc-upload.tmp");
       }
     });
 
   server_.on("/api/dbc/delete", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
     String name = server_.arg("name");name.replace("\\", "");
     if (name.indexOf('/') >= 0 || name.indexOf("..") >= 0 || !(name.endsWith(".dbc") || name.endsWith(".DBC"))) {
       server_.send(400, "application/json", "{\"ok\":false,\"error\":\"invalid name\"}");return;
@@ -168,6 +263,7 @@ void WebApp::setupRoutes() {
     server_.send(ok ? 200 : 404, "application/json", ok ? "{\"ok\":true}" : "{\"ok\":false,\"error\":\"not found\"}");
   });
   server_.on("/style.css", HTTP_GET, [this]() {
+    allowLocalFileOrigin();
     File file = LittleFS.open("/style.css", FILE_READ);
     if (!file) {
       server_.send(404, "text/plain", "style.css missing - run: pio run -t uploadfs");
@@ -180,6 +276,7 @@ void WebApp::setupRoutes() {
   });
 
   server_.on("/app.js", HTTP_GET, [this]() {
+    allowLocalFileOrigin();
     File file = LittleFS.open("/app.js", FILE_READ);
     if (!file) {
       server_.send(404, "text/plain", "app.js missing - run: pio run -t uploadfs");
@@ -192,12 +289,17 @@ void WebApp::setupRoutes() {
   });
 
   server_.on("/api/status", HTTP_GET, [this]() {
+    allowLocalFileOrigin();
     server_.send(200, "application/json", statusJsonString());
   });
 
   // DBC-Dateien werden zur Laufzeit durch die Weboberflaeche verwaltet.
   server_.on("/api/dbc/list", HTTP_GET, [this]() {
-    String json = "{\"files\":[";
+    allowLocalFileOrigin();
+    server_.setContentLength(CONTENT_LENGTH_UNKNOWN);
+    server_.sendHeader("Cache-Control", "no-store");
+    server_.send(200, "application/json", "");
+    server_.sendContent("{\"files\":[");
     bool first = true;
     File root = LittleFS.open("/dbc");
     if (root && root.isDirectory()) {
@@ -211,8 +313,8 @@ void WebApp::setupRoutes() {
           if (name.endsWith(".dbc") || name.endsWith(".DBC")) {
             name.replace("\\", "\\\\");
             name.replace("\"", "\\\"");
-            if (!first) json += ',';
-            json += "{\"name\":\"" + name + "\",\"size\":" + String(size) + "}";
+            if (!first) server_.sendContent(",");
+            server_.sendContent("{\"name\":\"" + name + "\",\"size\":" + String(size) + "}");
             first = false;
           }
         }
@@ -222,12 +324,12 @@ void WebApp::setupRoutes() {
       }
       root.close();
     }
-    json += "],\"maxSize\":" + String(Config::DBC_MAX_FILE_SIZE) + "}";
-    server_.sendHeader("Cache-Control", "no-store, max-age=0");
-    server_.send(200, "application/json", json);
+    server_.sendContent("],\"maxSize\":" + String(LittleFS.totalBytes() / 5U * 4U) + "}");
+    server_.sendContent("");
   });
 
   server_.on("/api/dbc/file", HTTP_GET, [this]() {
+    allowLocalFileOrigin();
     String name = server_.arg("name");
     name.replace("\\", "");
     if (name.indexOf('/') >= 0 || name.indexOf("..") >= 0 ||
@@ -243,11 +345,6 @@ void WebApp::setupRoutes() {
       return;
     }
     const size_t size = file.size();
-    if (size > Config::DBC_MAX_FILE_SIZE) {
-      file.close();
-      server_.send(413, "text/plain", "dbc file too large");
-      return;
-    }
     server_.sendHeader("Cache-Control", "no-store, max-age=0");
     server_.sendHeader("X-DEACS-DBC-Size", String(size));
     server_.streamFile(file, "text/plain");
@@ -255,24 +352,32 @@ void WebApp::setupRoutes() {
   });
 
   server_.on("/api/diagnostics/reset", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
     resetDiagnosticPeaks();
     server_.send(200, "application/json", statusJsonString());
   });
 
   server_.on("/api/diagnostics/selftest", HTTP_GET, [this]() {
+    allowLocalFileOrigin();
     server_.send(200, "application/json", selfTestJson());
   });
 
   server_.on("/api/diagnostics/events", HTTP_GET, [this]() {
-    server_.send(200, "application/json", diagnosticEventsJson());
+    allowLocalFileOrigin();
+    sendDiagnosticEvents();
   });
 
   server_.on("/api/sim/clear", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
     Simulator.clear();
     server_.send(200, "application/json", statusJsonString());
   });
 
   server_.on("/api/sim/add", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
+    if (!server_.hasArg("id") || !server_.hasArg("data") || !server_.hasArg("interval")) {
+      server_.send(400, "application/json", "{\"ok\":false,\"error\":\"Simulator frame requires id, data and interval\"}");return;
+    }
     const bool extended = server_.arg("extended") == "1";
     const uint32_t id = strtoul(server_.arg("id").c_str(), nullptr, 16);
     String dataText = server_.arg("data");
@@ -285,27 +390,43 @@ void WebApp::setupRoutes() {
     for (uint8_t i = 0; i < dlc && valid; ++i) {
       valid = parseHexByte(dataText.substring(i * 2U, i * 2U + 2U), data[i]);
     }
+    const uint32_t interval = constrain(server_.arg("interval").toInt(), 10, 60000);
     const bool ok = valid && Simulator.add(
       id, extended, data, dlc,
-      constrain(server_.arg("interval").toInt(), 10, 60000),
+      interval,
       server_.arg("enabled") != "0", server_.arg("dynamic") == "1",
-      static_cast<uint8_t>(server_.arg("dynamicIndex").toInt()));
-    server_.send(ok ? 200 : 400, "application/json",
-                 String("{\"ok\":") + (ok ? "true" : "false") + "}");
+      static_cast<uint8_t>(server_.arg("dynamicIndex").toInt()),
+      static_cast<uint8_t>(server_.arg("mode").toInt()));
+    if (!ok && Simulator.memoryLimited()) {
+      server_.send(507, "application/json", "{\"ok\":false,\"error\":\"80% memory budget reached\"}");
+      return;
+    }
+    char response[128];
+    snprintf(response, sizeof(response), "{\"ok\":%s,\"id\":\"%lX\",\"dlc\":%u,\"interval\":%lu,\"mode\":%u}",
+             ok ? "true" : "false", static_cast<unsigned long>(id), dlc, static_cast<unsigned long>(interval),
+             static_cast<unsigned>(server_.arg("mode").toInt()));
+    server_.send(ok ? 200 : 400, "application/json", response);
   });
 
   server_.on("/api/sim/start", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
     Simulator.setLiveTx(server_.arg("liveTx") == "1" || server_.arg("liveTx") == "true");
-    Simulator.start();
+    const String loop = server_.arg("loop");
+    if (server_.hasArg("loop") && loop != "0" && loop != "1" && loop != "false" && loop != "true") {
+      server_.send(400, "application/json", "{\"ok\":false,\"error\":\"invalid loop mode\"}");return;
+    }
+    Simulator.start(!server_.hasArg("loop") || loop == "1" || loop == "true");
     server_.send(200, "application/json", statusJsonString());
   });
 
   server_.on("/api/sim/stop", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
     Simulator.stop();
     server_.send(200, "application/json", statusJsonString());
   });
 
   server_.on("/api/sim/inject", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
     CanFrame frame;
     frame.timestampUs = micros();
     frame.simulated = true;
@@ -328,6 +449,7 @@ void WebApp::setupRoutes() {
   });
 
   server_.on("/api/can", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
     const uint32_t bitrate = server_.arg("bitrate").toInt();
     const String mode = server_.arg("mode");
     const bool validBitrate = bitrate == 1000000U || bitrate == 500000U ||
@@ -344,18 +466,22 @@ void WebApp::setupRoutes() {
   });
 
   server_.on("/api/can/toggle", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
     const bool ok = Can.running() ? Can.disconnect() : Can.reconnect();
     server_.send(ok ? 200 : 500, "application/json", statusJsonString());
   });
 
   server_.on("/api/filter", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
     const bool enabled = server_.arg("enabled") == "1" || server_.arg("enabled") == "true";
-    filterInverted_ = server_.arg("mode") == "exclude";
-    setServerFilter(server_.arg("ids"), enabled);
+    if (!setServerFilter(server_.arg("ids"), enabled, server_.arg("mode") == "exclude")) {
+      server_.send(500, "application/json", "{\"ok\":false,\"error\":\"CAN filter could not be applied or saved (device or 80% memory/storage limit)\"}"); return;
+    }
     server_.send(200, "application/json", statusJsonString());
   });
 
   server_.on("/api/send", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
     CanFrame frame;
     frame.timestampUs = micros();
     frame.id = strtoul(server_.arg("id").c_str(), nullptr, 16);
@@ -383,23 +509,27 @@ void WebApp::setupRoutes() {
 
 
   server_.on("/api/log/start", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
     const bool truncateFile = server_.arg("append") != "1";
     const bool ok = Logger.start(truncateFile);
     server_.send(ok ? 200 : 500, "application/json", statusJsonString());
   });
 
   server_.on("/api/log/stop", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
     Logger.stop();
     server_.send(200, "application/json", statusJsonString());
   });
 
   server_.on("/api/log/delete", HTTP_POST, [this]() {
+    allowLocalFileOrigin();
     Logger.stop();
     const bool ok = !LittleFS.exists(Config::LOG_PATH) || LittleFS.remove(Config::LOG_PATH);
     server_.send(ok ? 200 : 500, "application/json", statusJsonString());
   });
 
   server_.on("/api/log/download", HTTP_GET, [this]() {
+    allowLocalFileOrigin();
     if (!LittleFS.exists(Config::LOG_PATH)) {
       server_.send(404, "text/plain", "Kein Log vorhanden");
       return;
@@ -413,17 +543,19 @@ void WebApp::setupRoutes() {
   server_.onNotFound([this]() { server_.send(404, "text/plain", "Not found"); });
 }
 
-void WebApp::setServerFilter(const String& idsText, bool enabled) {
-  filterIdCount_ = 0;
+bool WebApp::setServerFilter(const String& idsText, bool enabled, bool inverted) {
+  BudgetList<uint32_t> pending;
   String token;
   for (size_t i = 0; i <= idsText.length(); ++i) {
+    if ((i & 1023U) == 0U) delay(0);
     const char c = i < idsText.length() ? idsText[i] : ' ';
     if (c == ' ' || c == ',' || c == ';' || c == '\t' || c == '\r' || c == '\n') {
       token.trim();
-      if (token.length() > 0 && filterIdCount_ < MAX_SERVER_FILTER_IDS) {
+      if (token.length() > 0 && enabled) {
         token.toLowerCase();
         int base = 16; // Bare CAN IDs use the usual hexadecimal notation.
-        if (token.startsWith("dec:")) { token.remove(0, 4); base = 10; }
+        if (token.startsWith("0x")) { token.remove(0, 2); }
+        else if (token.startsWith("dec:")) { token.remove(0, 4); base = 10; }
         else if (token.endsWith("d")) { token.remove(token.length() - 1); base = 10; }
         else {
           if (token.startsWith("0x")) token.remove(0, 2);
@@ -433,10 +565,11 @@ void WebApp::setServerFilter(const String& idsText, bool enabled) {
         const unsigned long value = strtoul(token.c_str(), &end, base);
         if (end != token.c_str() && *end == '\0' && value <= 0x1FFFFFFFUL) {
           bool duplicate = false;
-          for (uint8_t n = 0; n < filterIdCount_; ++n) {
-            if (filterIds_[n] == value) { duplicate = true; break; }
+          for (size_t n = 0; n < pending.size(); ++n) {
+            if ((n & 1023U) == 0U) delay(0);
+            if (pending[n] == value) { duplicate = true; break; }
           }
-          if (!duplicate) filterIds_[filterIdCount_++] = static_cast<uint32_t>(value);
+          if (!duplicate && !pending.append(static_cast<uint32_t>(value))) return false;
         }
       }
       token = "";
@@ -444,26 +577,49 @@ void WebApp::setServerFilter(const String& idsText, bool enabled) {
       token += c;
     }
   }
-  filterEnabled_ = enabled && filterIdCount_ > 0;
-  const bool useHardwareFilter = filterEnabled_ && !filterInverted_;
-  Can.setAcceptanceFilter(useHardwareFilter ? filterIds_ : nullptr,
-                          useHardwareFilter ? filterIdCount_ : 0);
+  return applyServerFilter(pending, enabled, inverted, true);
 }
 
-String WebApp::serverFilterIdsText() const {
-  String text;
-  for (uint8_t i = 0; i < filterIdCount_; ++i) {
-    if (i > 0) text += ' ';
-    text += String(filterIds_[i], HEX);
+bool WebApp::applyServerFilter(BudgetList<uint32_t>& pending, bool enabled, bool inverted, bool persist) {
+  enabled = enabled && pending.size() > 0;
+  if (!configureHardwareFilter(pending, enabled, inverted)) return false;
+  if (persist && !saveFilter(pending, enabled, inverted)) {
+    configureHardwareFilter(filterIds_, filterEnabled_, filterInverted_);
+    return false;
   }
-  text.toUpperCase();
-  return text;
+  filterIds_.swap(pending);
+  filterInverted_ = inverted;
+  ++filterRevision_;
+  filterEnabled_ = enabled;
+  return true;
+}
+
+void WebApp::restoreServerFilter() {
+  if (!LittleFS.exists(FILTER_PATH)) return;
+  File file = LittleFS.open(FILTER_PATH, FILE_READ);
+  uint32_t header[3]{};
+  if (!file || file.read(reinterpret_cast<uint8_t*>(header), sizeof(header)) != sizeof(header) ||
+      header[0] != FILTER_MAGIC || header[1] > 3U || file.size() < sizeof(header) ||
+      (file.size() - sizeof(header)) % sizeof(uint32_t) != 0U ||
+      header[2] != (file.size() - sizeof(header)) / sizeof(uint32_t)) {
+    addDiagnosticEvent("Gespeicherter CAN-Filter ungueltig");return;
+  }
+  BudgetList<uint32_t> ids;
+  for (size_t i = 0; i < header[2]; ++i) {
+    uint32_t id = 0;
+    if (file.read(reinterpret_cast<uint8_t*>(&id), sizeof(id)) != sizeof(id) || id > 0x1FFFFFFFUL || !ids.append(id)) {
+      addDiagnosticEvent("CAN-Filter konnte nicht geladen werden");return;
+    }
+  }
+  file.close();
+  if (!applyServerFilter(ids, (header[1] & 1U) != 0U, (header[1] & 2U) != 0U, false))
+    addDiagnosticEvent("CAN-Filter konnte nicht aktiviert werden");
 }
 
 bool WebApp::frameAllowed(const CanFrame& frame) const {
-  if (!filterEnabled_ || filterIdCount_ == 0) return true;
+  if (!filterEnabled_ || filterIds_.size() == 0) return true;
   bool found = false;
-  for (uint8_t i = 0; i < filterIdCount_; ++i) {
+  for (size_t i = 0; i < filterIds_.size(); ++i) {
     if (filterIds_[i] == frame.id) { found = true; break; }
   }
   return filterInverted_ ? !found : found;
@@ -471,25 +627,25 @@ bool WebApp::frameAllowed(const CanFrame& frame) const {
 
 
 void WebApp::addDiagnosticEvent(const char* text) {
-  DiagnosticEvent& event = diagnosticEvents_[diagnosticEventWrite_];
+  DiagnosticEvent event;
   event.ms = millis();
   snprintf(event.text, sizeof(event.text), "%s", text ? text : "");
-  diagnosticEventWrite_ = (diagnosticEventWrite_ + 1U) % DIAGNOSTIC_EVENT_COUNT;
-  if (diagnosticEventUsed_ < DIAGNOSTIC_EVENT_COUNT) ++diagnosticEventUsed_;
+  diagnosticEvents_.append(event);
 }
 
-String WebApp::diagnosticEventsJson() const {
-  String json = "{\"events\":[";
-  for (uint8_t i = 0; i < diagnosticEventUsed_; ++i) {
-    const uint8_t index = (diagnosticEventWrite_ + DIAGNOSTIC_EVENT_COUNT - diagnosticEventUsed_ + i) % DIAGNOSTIC_EVENT_COUNT;
-    if (i) json += ',';
-    json += "{\"ms\":" + String(diagnosticEvents_[index].ms) + ",\"text\":\"";
-    String text = diagnosticEvents_[index].text;
+void WebApp::sendDiagnosticEvents() {
+  server_.setContentLength(CONTENT_LENGTH_UNKNOWN);
+  server_.send(200, "application/json", "");
+  server_.sendContent("{\"events\":[");
+  for (size_t i = 0; i < diagnosticEvents_.size(); ++i) {
+    if (i) server_.sendContent(",");
+    String text = diagnosticEvents_[i].text;
     text.replace("\\", "\\\\"); text.replace("\"", "\\\"");
-    json += text + "\"}";
+    server_.sendContent("{\"ms\":" + String(diagnosticEvents_[i].ms) + ",\"text\":\"" + text + "\"}");
+    delay(0);
   }
-  json += "]}";
-  return json;
+  server_.sendContent("]}");
+  server_.sendContent("");
 }
 
 String WebApp::selfTestJson() const {
@@ -508,6 +664,14 @@ String WebApp::selfTestJson() const {
 }
 
 void WebApp::resetDiagnosticPeaks() {
+  Can.resetDiagnostics();
+  diagnosticEvents_.clear();
+  wsFrameCount_ = filteredFrameCount_ = wsBatchCount_ = 0;
+  lastWsFrameCount_ = lastFilteredFrameCount_ = 0;
+  wsFrameRate_ = filteredFrameRate_ = 0;
+  lastPipelineStatsMs_ = millis();
+  queueWarningActive_ = false;
+  lastQueueWarningMs_ = 0;
   minFreeHeap_ = ESP.getFreeHeap();
   minLargestHeapBlock_ = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
   maxWsBatchBytes_ = 0;
@@ -525,7 +689,7 @@ size_t WebApp::statusJson(char* buffer, size_t capacity) const {
   const IPAddress ip = WiFi.softAPIP();
   char filterIds[320]{};
   size_t filterUsed = 0U;
-  for (uint8_t i = 0; i < filterIdCount_; ++i) {
+  for (size_t i = 0; i < filterIds_.size() && i < 32U; ++i) {
     if (i > 0U && filterUsed + 1U < sizeof(filterIds)) filterIds[filterUsed++] = ' ';
     const int written = snprintf(filterIds + filterUsed, sizeof(filterIds) - filterUsed, "%lX",
                                  static_cast<unsigned long>(filterIds_[i]));
@@ -599,13 +763,30 @@ size_t WebApp::statusJson(char* buffer, size_t capacity) const {
     static_cast<unsigned long>(Logger.writtenFrames()), static_cast<unsigned long>(Logger.fileSize()),
     static_cast<unsigned long>(lastCanFrameMs_ ? nowMs - lastCanFrameMs_ : 0U),
     static_cast<unsigned long>(lastWsPacketMs_ ? nowMs - lastWsPacketMs_ : 0U),
-    static_cast<unsigned>(wsClientCount_), static_cast<unsigned>(diagnosticEventUsed_),
+    static_cast<unsigned>(wsClientCount_), static_cast<unsigned>(diagnosticEvents_.size()),
     filterEnabled_ ? "true" : "false", filterInverted_ ? "exclude" : "include", filterIds);
+  if (used > 0 && buffer[used - 1] == '}') --used;
+  appendFormat(buffer, capacity, used,
+    ",\"memoryLimitPercent\":80,\"heapTotal\":%u,\"psramTotal\":%u,\"psramFree\":%u,"
+    "\"internalAvailable\":%u,\"psramAvailable\":%u,\"fsTotal\":%u,\"fsUsed\":%u,"
+    "\"simMemoryLimited\":%s,\"filterCount\":%u,\"filterRevision\":%lu,\"logMemoryLimited\":%s,\"filterIdsTruncated\":%s,\"usbTunnelStarted\":%s,\"usbHostActive\":%s,\"simLoop\":%s,\"simRemaining\":%u,\"simRunId\":%lu,\"simLiveTx\":%s}",
+    ESP.getHeapSize(), ESP.getPsramSize(), ESP.getFreePsram(),
+    static_cast<unsigned>(MemoryBudget::available(MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT)),
+    static_cast<unsigned>(MemoryBudget::available(MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT)),
+    static_cast<unsigned>(LittleFS.totalBytes()), static_cast<unsigned>(LittleFS.usedBytes()),
+    Simulator.memoryLimited() ? "true" : "false", static_cast<unsigned>(filterIds_.size()),
+    static_cast<unsigned long>(filterRevision_), Logger.memoryLimited() ? "true" : "false",
+    filterIds_.size() > 32U ? "true" : "false", Usb.started() ? "true" : "false", Usb.active() ? "true" : "false",
+    Simulator.looping() ? "true" : "false", static_cast<unsigned>(Simulator.remaining()), static_cast<unsigned long>(Simulator.runId()),
+    Simulator.liveTx() ? "true" : "false");
   return used;
 }
 
 String WebApp::statusJsonString() const {
-  char json[4096];
+  // HTTP handlers run sequentially in loopTask. Keep this scratch buffer out
+  // of its 8 KiB stack: status formatting, LittleFS and HTTP already nest here.
+  // broadcastStatus owns a separate buffer and uses the same loop task.
+  static char json[4096];
   const size_t length = statusJson(json, sizeof(json));
   return String(json, length);
 }

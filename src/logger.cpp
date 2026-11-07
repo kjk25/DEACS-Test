@@ -1,6 +1,7 @@
 #include "logger.h"
 #include "config.h"
 #include <LittleFS.h>
+#include "memory_budget.h"
 
 CanLogger Logger;
 
@@ -15,6 +16,8 @@ bool CanLogger::begin() {
 bool CanLogger::start(bool truncateFile) {
   if (!mounted_) return false;
   stop();
+  memoryLimited_ = !MemoryBudget::canWrite(128U);
+  if (memoryLimited_) return false;
   file_ = LittleFS.open(Config::LOG_PATH, truncateFile ? "w" : "a");
   if (!file_) return false;
   if (truncateFile || file_.size() == 0U) {
@@ -37,11 +40,14 @@ void CanLogger::stop() {
 
 void CanLogger::log(const CanFrame& frame, const char* direction) {
   if (!active_ || !file_) return;
-  file_.printf("%lu,%s,%lX,%u,%u,%u,", static_cast<unsigned long>(frame.timestampUs), direction,
+  if (!MemoryBudget::canWrite(128U)) { memoryLimited_ = true; stop(); return; }
+  char line[128];
+  size_t length = snprintf(line, sizeof(line), "%lu,%s,%lX,%u,%u,%u,", static_cast<unsigned long>(frame.timestampUs), direction,
                static_cast<unsigned long>(frame.id), frame.extended ? 1U : 0U,
                frame.rtr ? 1U : 0U, frame.dlc);
-  for (uint8_t i = 0; i < frame.dlc; ++i) file_.printf("%02X", frame.data[i]);
-  file_.printf(",%u\n", frame.simulated ? 1U : 0U);
+  for (uint8_t i = 0; i < frame.dlc && i < 8U; ++i) length += snprintf(line + length, sizeof(line) - length, "%02X", frame.data[i]);
+  length += snprintf(line + length, sizeof(line) - length, ",%u\n", frame.simulated ? 1U : 0U);
+  if (file_.write(reinterpret_cast<const uint8_t*>(line), length) != length) { stop(); return; }
   ++writtenFrames_;
   if (++pendingFlush_ >= Config::LOG_FLUSH_EVERY) {
     file_.flush();

@@ -5,16 +5,18 @@
 <meta charset="utf-8"/>
 <meta content="width=device-width,initial-scale=1" name="viewport"/>
 <title>DEACS</title>
-<link href="/style.css?v=0.13.04" rel="stylesheet"/>
+<link href="/style.css?v=0.13.63-TEST" rel="stylesheet"/>
 </head>
 <body>
 <header class="topbar">
 <div class="brand">
-<h1>DEACS <span id="headerVersion">V-.-.-</span></h1>
+<h1>DEACS <span id="headerVersion">V0.13.63-TEST</span></h1>
 <small>Der Etwas Andere CAN Sniffer</small>
 </div>
 <div class="statusPills">
 <span class="pill offline" id="connection">Getrennt</span>
+<button class="tooltip-blue tooltip-bottom tooltip-right" id="usbConnect" type="button" data-tooltip="Seriellen DEACS-Port direkt im Browser verwenden.">USB verbinden</button>
+<button class="tooltip-blue tooltip-bottom tooltip-right" id="usbPageDownload" type="button" data-tooltip="Speichert die vollständige USB-Oberfläche zum lokalen Öffnen ohne WLAN oder Zusatzprogramm.">USB-Oberfläche speichern</button>
 <button class="pill statusPillButton" id="canMode" type="button">CAN --</button>
 <span class="pill" id="canBitrate">-- kbit/s</span>
 <span class="pill">RX <b id="rxRate">0</b>/s</span>
@@ -31,9 +33,12 @@
 <button data-tab="labels">Label dictionary</button>
 <button data-tab="tx">TX</button>
 <button data-tab="sim">Simulator</button>
+<button data-tab="bmwE90">BMW E90</button>
 <button data-tab="logs">Logs</button>
 <button data-tab="events">Ereignis</button>
 <button data-tab="settings">Settings</button>
+<span class="navLanguageGap" aria-hidden="true"></span>
+<button id="languageToggle" type="button" aria-label="Switch to English" title="Switch to English">DE / EN / JA</button>
 </nav>
 <main>
 <section class="tab active" id="monitor">
@@ -61,7 +66,7 @@
 </details>
 <details class="monitorDataGroup deacsCollapsibleGroup dataGroupGreen" open=""><summary><span>CAN-Monitor</span></summary><div class="deacsGroupBody">
 
-<div class="monitorInfo"><span>Empfangen: <b id="receivedCount">0</b></span><span>Puffer: <b id="bufferCount">0</b>/10000</span><span>Angezeigt: <b id="visibleCount">0</b></span><span id="pauseInfo"></span></div>
+<div class="monitorInfo"><span>Empfangen: <b id="receivedCount">0</b></span><span>Puffer: <b id="bufferCount">0</b> Frames</span><span hidden><b id="visibleCount">0</b></span><span id="monitorMemoryStatus"></span><span id="browserRxStatus" class="tooltip-red tooltip-bottom"></span><span id="pauseInfo"></span></div>
 <div class="tablewrap monitorTable"><table><thead><tr><th class="idFormatToggle" data-id-format-toggle="" title="Klicken: HEX/DEC umschalten">ID (HEX)</th><th>Label</th><th>Zeit [s]</th><th>Δt [ms]</th><th>Quelle</th><th>DLC</th><th>D0</th><th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th><th>D6</th><th>D7</th><th>ASCII</th></tr></thead><tbody id="frames"></tbody></table></div>
 </div></details>
 </section>
@@ -192,7 +197,7 @@
 <option value="10">10×</option>
 </select>
 </label>
-<label class="simReplayOption"><input id="simReplayLoop" type="checkbox"/> Wiederholen</label>
+<label class="simReplayOption tooltip-orange" data-tooltip="Wiederholt die geladenen Logdaten bis zum Stoppen. Die Speichergrenzen für Monitor und Logging gelten weiterhin."><input checked="" id="simReplayLoop" type="checkbox"/> Endlos wiederholen</label>
 </div>
 <div class="sectionActionRow">
 <button disabled="" id="simReplay" type="button">▶ Log abspielen</button>
@@ -204,14 +209,68 @@
 <div class="deacsGroupBody">
 <div class="simEmptyHint" id="simEmptyHint">Keine Simulator-Frames vorhanden. Über „Beispiele laden“ können Testdaten eingefügt werden.</div><div class="simAdd"><label class="simAddId"><span data-id-format-label="">ID (HEX)</span><input id="simId" maxlength="10" placeholder="ID" value="123"/></label><label class="simAddDlc"><span>DLC</span><select id="simDlc" aria-label="Simulator-DLC"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option selected>8</option></select></label><div class="simAddBytes" id="simAddBytes" aria-label="Datenbytes"><label><span>D0</span><input maxlength="2" value="00" aria-label="D0"/></label><label><span>D1</span><input maxlength="2" value="11" aria-label="D1"/></label><label><span>D2</span><input maxlength="2" value="22" aria-label="D2"/></label><label><span>D3</span><input maxlength="2" value="33" aria-label="D3"/></label><label><span>D4</span><input maxlength="2" value="44" aria-label="D4"/></label><label><span>D5</span><input maxlength="2" value="55" aria-label="D5"/></label><label><span>D6</span><input maxlength="2" value="66" aria-label="D6"/></label><label><span>D7</span><input maxlength="2" value="77" aria-label="D7"/></label></div><label class="simAddInterval"><span>Intervall</span><select aria-label="Simulator-Intervall" id="simMs">
 <option value="10">10 ms</option><option value="20">20 ms</option><option value="50">50 ms</option><option selected="" value="100">100 ms</option><option value="200">200 ms</option><option value="500">500 ms</option><option value="1000">1000 ms</option><option value="2000">2000 ms</option><option value="5000">5000 ms</option>
-</select></label><button id="simAdd">Frame hinzufügen</button><div class="simAddActions"><button id="simExamples" type="button">Beispiele laden</button><button class="danger" id="simClear" type="button">Alle löschen</button></div></div><div class="tablewrap simTable"><table><colgroup><col class="simColId"><col class="simColLabel"><col class="simColDlc"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColInterval"><col class="simColActive"><col class="simColSource"><col class="simColDrag"><col class="simColMenu"></colgroup><thead><tr><th class="idFormatToggle" data-id-format-toggle="" title="Klicken: HEX/DEC umschalten">ID (HEX)</th><th>Label</th><th>DLC</th><th>D0</th><th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th><th>D6</th><th>D7</th><th>Intervall</th><th>Aktiv</th><th>Quelle</th><th aria-label="Reihenfolge" class="simDragCol"></th><th aria-label="Aktionen"></th></tr></thead><tbody id="simRows"></tbody></table></div><div class="simStatusLine" role="status"><span class="simBrowserStatus" id="simBrowserStatus">Browser-Simulator bereit</span><span class="simStatusSep">|</span><span>Frames <b id="simCountTotal">0</b></span><span>Aktiv <b id="simCountActive">0</b></span><span>Inaktiv <b id="simCountInactive">0</b></span></div>
+</select></label><button id="simAdd">Frame hinzufügen</button><div class="simAddActions"><button id="simImport" type="button">Import</button><button id="simExport" type="button">Export</button><button id="simExamples" type="button">Beispiele laden</button><button class="danger" id="simClear" type="button">Alle löschen</button><input accept="application/json,.json" hidden="" id="simImportFile" type="file"/></div></div><div class="tablewrap simTable"><table><colgroup><col class="simColId"><col class="simColLabel"><col class="simColDlc"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColByte"><col class="simColInterval"><col class="simColMode"><col class="simColActive"><col class="simColSource"><col class="simColDrag"><col class="simColMenu"></colgroup><thead><tr><th class="idFormatToggle" data-id-format-toggle="" title="Klicken: HEX/DEC umschalten">ID (HEX)</th><th>Label</th><th>DLC</th><th>D0</th><th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>D5</th><th>D6</th><th>D7</th><th>Intervall</th><th>Datenmodus</th><th>Aktiv</th><th>Quelle</th><th aria-label="Reihenfolge" class="simDragCol"></th><th aria-label="Aktionen"></th></tr></thead><tbody id="simRows"></tbody></table></div><div class="simStatusLine" role="status"><span class="simBrowserStatus" id="simBrowserStatus">Browser-Simulator bereit</span><span class="simStatusSep">|</span><span>Frames <b id="simCountTotal">0</b></span><span>Aktiv <b id="simCountActive">0</b></span><span>Inaktiv <b id="simCountInactive">0</b></span></div>
 <div class="sectionActionRow">
 <button class="primary" id="simToggle">▶ Simulation starten</button>
+<label class="tooltip-green" data-tooltip="Einmalig erzeugt jeden aktivierten Frame genau einmal nach seinem Intervall. Endlos wiederholt ihn bis zum Stoppen. Diese Auswahl gilt nur für den Simulator.">Wiederholung <select id="simRepeatMode"><option value="once">Einmalig</option><option value="endless" selected>Endlos</option></select></label>
 </div>
 </div>
 </details>
 </div>
 </section>
+
+<section class="tab" id="bmwE90">
+  <details class="deacsCollapsibleGroup dataGroupGreen" open>
+    <summary><span>BMW E90 - Tacho-Demo</span></summary>
+    <div class="deacsGroupBody bmwRaceBody">
+      <div class="bmwCockpit">
+        <div class="bmwDial speedDial"><div class="bmwDialTicks" id="bmwSpeedTicks"></div><div class="bmwDialNeedle" id="bmwSpeedNeedle"></div><div class="bmwDialHub"></div><div class="bmwDialValue"><b id="bmwSpeedValue">0</b><span>km/h</span></div></div>
+        <div class="bmwRaceCenter"><div class="bmwGearCaption">GANG</div><div class="bmwGear" id="bmwGear">N</div><div class="bmwShiftLight" id="bmwShiftLight"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="bmwRaceState" id="bmwRaceState">BEREIT</div><div class="bmwMiniGauges">
+ <div class="bmwMiniGauge"><span class="bmwMiniTitle">Tank</span><div class="bmwMiniFace"><i class="bmwMiniNeedle" id="bmwFuelNeedle"></i><i class="bmwMiniHub"></i><span class="bmwMiniMin">E</span><span class="bmwMiniMax">F</span></div><b id="bmwFuelView">100 %</b></div>
+ <div class="bmwMiniGauge"><span class="bmwMiniTitle">Kühlmittel</span><div class="bmwMiniFace"><i class="bmwMiniNeedle" id="bmwCoolantNeedle"></i><i class="bmwMiniHub"></i><span class="bmwMiniMin">0 °C</span><span class="bmwMiniMax">130 °C</span></div><b id="bmwCoolantView">90 °C</b></div>
+</div>
+</div>
+        <div class="bmwDial rpmDial"><div class="bmwDialTicks" id="bmwRpmTicks"></div><div class="bmwDialNeedle" id="bmwRpmNeedle"></div><div class="bmwDialHub"></div><div class="bmwDialValue"><b id="bmwRpmValue">800</b><span>U/min</span></div></div>
+      <div class="bmwIndicatorPanel">
+ <button class="bmwLamp" data-lamp="left">⬅ <span>Blinker L</span></button>
+ <button class="bmwLamp" data-lamp="right"><span>Blinker R</span> ➡</button>
+ <button class="bmwLamp" data-lamp="hazard">⚠ <span>Warnblinker</span></button>
+ <button class="bmwLamp" data-lamp="high">◉ <span>Fernlicht</span></button>
+ <button class="bmwLamp" data-lamp="low">◌ <span>Abblendlicht</span></button>
+ <button class="bmwLamp" data-lamp="fog">Nebel <span>Nebellicht (beide)</span></button>
+ <button class="bmwLamp" data-lamp="brake">Ⓟ <span>Handbremse</span></button>
+ <button class="bmwLamp auto on" data-lamp="auto"><span>Auto-Lampen</span></button>
+</div>
+</div>
+<div class="bmwDbcStatusPanel"><div class="bmwDbcStatusRow">
+ <span class="bmwDbcLed" id="bmwBrakePedalLamp" title="Handbremse"><i></i>Bremse</span>
+ <span class="bmwDbcLed" id="bmwCruiseLamp"><i></i>Tempomat</span>
+ <span class="bmwDbcReadout">Tempomat <b id="bmwCruiseSpeedView">0</b> km/h</span>
+ <span class="bmwDbcLed" id="bmwAutoWiperLamp"><i></i>Auto-Wischer</span>
+ <span class="bmwDbcLed" id="bmwReverseLamp"><i></i>Rückwärtsgang</span>
+ <span class="bmwDbcReadout">Batterie <b id="bmwBatteryView">–</b> V</span>
+ <span class="bmwDbcReadout">Lenkwinkel <b id="bmwSteerView">–</b>°</span>
+ <span class="bmwDbcLed" title="Innenlicht wird in dieser Demo nicht angesteuert."><i></i>Innenlicht</span>
+</div></div>
+<div class="bmwLampTestPanel">
+<div id="bmwLampTests" class="bmwLampTests"></div>
+</div>
+<div class="bmwRaceControls">
+        <div class="bmwControlGrid">
+<label>Zielgeschwindigkeit <input id="bmwTarget" type="number" min="20" max="260" step="10" value="120"> km/h</label>
+<label>Beschleunigungszeit <input id="bmwRaceDuration" type="number" min="3" max="60" step="1" value="12"> s</label>
+<label>Schaltdrehzahl <input id="bmwShiftRpm" type="number" min="4500" max="8000" step="100" value="6500"> U/min</label>
+<label>Leerlauf <input id="bmwIdleRpm" type="number" min="600" max="1500" step="50" value="800"> U/min</label>
+<label>Tachokalibrierung <input id="bmwCalibration" type="number" min="0" max="200" step="1" value="60"></label>
+</div>
+        <div class="sectionActionRow bmwButtons"><button class="primary" id="bmwStartRace" type="button">🏁 <span>Tacho-Demo starten</span></button><button id="bmwHold" type="button">▶ <span>Demo halten / fortsetzen</span></button><button class="danger" id="bmwStop" type="button">■ <span>Stop</span></button><button id="bmwReset" type="button"><span>Reset</span></button></div>
+
+        <div class="bmwStatusLine" id="bmwStatus" style="display:none">Bereit</div>
+      </div>
+    </div>
+  </details>
+</section>
+
 <section class="tab" id="logs"><details class="singlePageGroup deacsCollapsibleGroup replayGroupOrange" open=""><summary><span>Browser-Logging und Import</span></summary><div class="deacsGroupBody"><div class="card wide logCard"><h2>Browser-Logging (IndexedDB)</h2>
 <div class="logStatusGrid">
 <span>Status</span><b id="logState">aus</b>
@@ -286,7 +345,17 @@
 </div>
 </div></details>
 </section>
-<section class="tab" id="settings"><details class="singlePageGroup deacsCollapsibleGroup toolGroupBlue" open=""><summary><span>Einstellungen</span></summary><div class="deacsGroupBody"><div class="card settingsCard"><h2>CAN-Einstellungen</h2>
+<section class="tab" id="settings"><details class="singlePageGroup deacsCollapsibleGroup toolGroupBlue" open=""><summary><span>Einstellungen</span></summary><div class="deacsGroupBody"><div class="card settingsCard">
+<h2>Einstellungen sichern</h2>
+<div class="sectionActionRow">
+<button id="settingsSave" type="button" class="tooltip-blue" data-tooltip="Speichert Einstellungen, Filter, Häkchen und Konfigurationen als JSON-Datei.">Settings speichern</button>
+<button id="settingsLoad" type="button" class="tooltip-blue" data-tooltip="Lädt eine gespeicherte Settings-Datei. Vor dem Ersetzen erscheint eine Bestätigung.">Settings laden</button>
+<input id="settingsFile" type="file" accept=".json,application/json" hidden=""/>
+<button id="settingsApplyDevice" type="button" hidden="">Geräteeinstellungen anwenden</button>
+</div>
+<p class="hint" id="settingsTransferStatus">Enthält auch Simulator-Liste, Labels und Decoded-Definitionen. DBC-Dateien und aufgezeichnete CAN-Daten werden separat verwaltet.</p>
+<hr/>
+<h2>CAN-Einstellungen</h2>
 <div class="settingsRow">
 <label>Bitrate <select id="bitrate"><option>1000000</option><option selected="">500000</option><option>250000</option><option>125000</option><option>100000</option><option>50000</option><option>25000</option></select></label>
 <label>Modus <select id="mode"><option value="listen">Listen-only</option><option value="normal">TX mit ACK</option><option value="noack">TX ohne ACK</option></select></label>
@@ -298,6 +367,7 @@
 <label><input id="liveTxSimulator" type="checkbox"/> Simulator live auf CAN senden</label>
 <label><input id="liveTxGenerator" type="checkbox"/> Generator live auf CAN senden</label>
 <label><input id="liveTxLog" type="checkbox"/> Log-Wiedergabe live auf CAN senden</label>
+  <label><input id="liveTxBmw" type="checkbox"/> BMW E90 live auf CAN senden</label>
 </div>
 <p class="hint">Wirkt nur bei verbundenem ESP32 im Modus „Normal / TX“. Im Listen-only-Modus wird niemals gesendet.</p>
 <hr/>
@@ -338,6 +408,7 @@
 <span>RX-Drain Maximum</span><b><span id="maxRxDrainUs">0</span> µs</b>
 <span>Frames je Drain max.</span><b id="maxRxDrainFrames">0</b>
 <span>Backlog-Ereignisse</span><b id="rxBacklogEvents">0</b>
+<span>Speicherauslastung</span><b id="memoryBudgetStatus">Grenze 80 %</b>
 <span>Heap frei</span><b><span id="freeHeap">0</span> B</b>
 <span>Heap Minimum</span><b><span id="minFreeHeap">0</span> B</b>
 <span>Größter Block</span><b><span id="largestHeapBlock">0</span> B</b>
@@ -359,7 +430,7 @@
 <span>RXD</span><b id="rxPinLevel">HIGH</b>
 <span>RXD LOW</span><b><span id="rxPinLowPercent">0</span> %</b>
 </div>
-<div class="diagnosticActions"><button id="runDiagnosticSelfTest" type="button">Selbsttest starten</button><button id="loadDiagnosticEvents" type="button">Ereignisse laden</button><button id="resetDiagnosticPeaks" type="button">Spitzenwerte zurücksetzen</button></div>
+<div class="diagnosticActions"><button id="runDiagnosticSelfTest" type="button">Selbsttest starten</button><button id="loadDiagnosticEvents" type="button">Ereignisse laden</button><button id="resetDiagnosticPeaks" type="button">Diagnose zurücksetzen</button></div>
 <div class="diagnosticResult" hidden="" id="diagnosticSelfTest"></div>
 <pre class="diagnosticEvents" hidden="" id="diagnosticEvents"></pre>
 <pre id="statusDump"></pre>
@@ -368,7 +439,7 @@
 </main>
 <div aria-live="polite" class="appNotice" id="appNotice" role="status"><span class="noticeIcon">✓</span><span id="appNoticeText"></span><button aria-label="Meldung schließen" id="appNoticeClose">×</button></div>
 <div aria-labelledby="appDialogTitle" aria-modal="true" class="appDialog" id="appDialog" role="dialog">
-<div class="dialogCard"><h3 id="appDialogTitle">Bitte bestätigen</h3><p id="appDialogText"></p><div class="dialogActions"><button id="appDialogCancel">Abbrechen</button><button class="primary" id="appDialogConfirm">Bestätigen</button></div></div>
+<div class="dialogCard"><h3 id="appDialogTitle">Bitte bestätigen</h3><p id="appDialogText"></p><div class="dialogActions"><button id="appDialogCancel">Abbrechen</button><button hidden id="appDialogAdd">Hinzufügen</button><button class="primary" id="appDialogConfirm">Bestätigen</button></div></div>
 </div>
 <div aria-labelledby="exportDialogTitle" aria-modal="true" class="appDialog" id="exportDialog" role="dialog">
 <div class="dialogCard exportDialogCard"><h3 id="exportDialogTitle">Log exportieren</h3><p>Gewünschtes Dateiformat auswählen:</p><div class="exportChoices"><button id="logSave" type="button">DEACS (.dlog)</button><button id="logExport" type="button">CSV (.csv)</button></div><div class="dialogActions"><button id="exportDialogCancel" type="button">Abbrechen</button></div></div>
@@ -376,6 +447,17 @@
 <div aria-hidden="true" aria-labelledby="logExportProgressTitle" aria-modal="true" class="appDialog logExportProgressDialog" id="logExportProgress" role="dialog">
 <div class="dialogCard logExportProgressCard"><h3 id="logExportProgressTitle">Log wird exportiert</h3><p id="logExportProgressStatus">Logdaten werden gelesen …</p><div aria-label="Exportfortschritt" aria-valuemax="100" aria-valuemin="0" aria-valuenow="0" class="logExportProgressTrack" id="logExportProgressBar" role="progressbar"><span></span></div><div class="logExportProgressMeta"><b id="logExportProgressPercent">0 %</b><span id="logExportProgressFrames"></span></div><small>DEACS arbeitet weiter. Bei großen Logs kann die Vorbereitung etwas dauern.</small></div>
 </div>
-<footer><span>DEACS <span id="footerVersion">-</span></span><span>FW <b id="fw">-</b></span></footer>
-<script src="/app.js?v=0.13.04"></script>
+<footer><span>DEACS <span id="footerVersion">V0.13.63-TEST</span></span><span>FW <b id="fw">-</b></span></footer>
+<script src="/i18n-en.js" defer></script>
+<script src="/i18n-ja.js" defer></script>
+<script src="/i18n.js" defer></script>
+<script src="/web-serial.js" defer></script>
+<script src="/memory-budget.js" defer></script>
+<script src="/app.js" defer></script>
+
+<script src="/bmw-e90.js" defer></script>
+
+
+
+
 </body></html>

@@ -1,15 +1,20 @@
 #pragma once
 #include <Arduino.h>
 
+#if !CONFIG_IDF_TARGET_ESP32S3
+#error "DEACS requires an ESP32-S3 N16R8 board."
+#endif
+
 namespace Config {
 constexpr char FW_NAME[] = "DEACS";
-constexpr char FW_VERSION[] = "0.13.32-TEST";
-constexpr uint32_t SERIAL_BAUD = 115200;
+constexpr char FW_VERSION[] = "0.13.63-TEST";
+constexpr uint32_t SERIAL_BAUD = 921600;
 constexpr gpio_num_t CAN_TX_PIN = GPIO_NUM_17;
 constexpr gpio_num_t CAN_RX_PIN = GPIO_NUM_16;
 // In listen-only mode TWAI uses this unconnected dummy TX pin.
 // The physical transceiver TXD on GPIO17 is then held permanently recessive (HIGH).
-constexpr gpio_num_t CAN_LISTEN_TX_DUMMY_PIN = GPIO_NUM_27;
+// GPIO27 is reserved for flash/PSRAM on ESP32-S3 modules.
+constexpr gpio_num_t CAN_LISTEN_TX_DUMMY_PIN = GPIO_NUM_21;
 constexpr uint32_t CAN_BITRATE = 500000;
 constexpr int RX_LED_PIN = 2;
 constexpr bool RX_LED_ACTIVE_HIGH = true;
@@ -30,6 +35,4 @@ constexpr uint32_t WS_BATCH_INTERVAL_MS = 25;
 constexpr uint16_t CAN_RX_BURST_MAX = 256;
 constexpr char LOG_PATH[] = "/canlog.csv";
 constexpr size_t LOG_FLUSH_EVERY = 32;
-// Protect the synchronous ESP32 WebServer from very large DBC transfers.
-constexpr size_t DBC_MAX_FILE_SIZE = 512U * 1024U;
 }

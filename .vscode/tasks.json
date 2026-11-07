@@ -2,10 +2,17 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "DEACS: USB-HTML erstellen",
+      "type": "shell",
+      "command": "python",
+      "args": ["${workspaceFolder}\\tools\\build_usb_page.py"],
+      "problemMatcher": []
+    },
+    {
       "label": "DEACS: Build",
       "type": "shell",
       "command": "pio",
-      "args": ["run"],
+      "args": ["run", "-e", "esp32s3_n16r8"],
       "problemMatcher": ["$gcc"],
       "group": "build"
     },
@@ -13,21 +20,21 @@
       "label": "DEACS: Clean",
       "type": "shell",
       "command": "pio",
-      "args": ["run", "-t", "clean"],
+      "args": ["run", "-e", "esp32s3_n16r8", "-t", "clean"],
       "problemMatcher": []
     },
     {
       "label": "DEACS: Upload Firmware",
       "type": "shell",
       "command": "pio",
-      "args": ["run", "-t", "upload"],
+      "args": ["run", "-e", "esp32s3_n16r8", "-t", "upload", "--upload-port", "COM9"],
       "problemMatcher": []
     },
     {
       "label": "DEACS: Upload LittleFS",
       "type": "shell",
       "command": "pio",
-      "args": ["run", "-t", "uploadfs"],
+      "args": ["run", "-e", "esp32s3_n16r8", "-t", "uploadfs", "--upload-port", "COM9"],
       "problemMatcher": []
     },
     {
@@ -54,7 +61,7 @@
       "label": "DEACS: Serieller Monitor",
       "type": "shell",
       "command": "pio",
-      "args": ["device", "monitor"],
+      "args": ["device", "monitor", "--port", "COM9"],
       "problemMatcher": []
     }
   ]

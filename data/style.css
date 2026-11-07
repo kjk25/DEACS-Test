@@ -545,8 +545,8 @@ th,td{vertical-align:middle}
 .txHistoryTable th:nth-child(15),.txHistoryTable td:nth-child(15){width:156px}
 
 /* V0.12.45: Generator-Frames eindeutig als GEN kennzeichnen */
-.GEN{color:#70b7ff}
-.row-GEN:hover{background:#202b31}
+.GEN{color:#70b7ff}.BMW{color:#4ee0a1}
+.row-GEN:hover,.row-BMW:hover{background:#202b31}
 .simSourceBadge.gen{border-color:#3b78a8;color:#b9dcff;background:#172c3b}
 
 /* V0.12.46: Quellenanzeige und Simulator-Ausrichtung */
@@ -951,7 +951,9 @@ table tbody tr:hover{background:#1b282f}
 /* V0.12.64: virtuelle Übersichtstabelle */
 .overviewRenderStatus{display:flex;justify-content:flex-end;gap:18px;min-height:24px;padding:5px 4px 0;color:#9bb1bc;font-size:12px}
 .overviewRenderStatus b{color:#e8eef2;font-weight:700}
-.overviewVirtualSpacer td{height:0!important;padding:0!important;border:0!important;background:transparent!important;pointer-events:none}
+.overviewVirtualSpacer td,.monitorVirtualSpacer td{height:0!important;padding:0!important;border:0!important;background:transparent!important;pointer-events:none}
+.monitorTable{overflow-anchor:none}
+.monitorInfo .browserRxOverload{color:#ff7b83;font-weight:600}
 
 .diagnosticActions{display:flex;justify-content:flex-end;max-width:620px;margin-top:10px}.diagnosticActions button{min-width:210px}
 
@@ -1698,11 +1700,14 @@ nav button[data-tab="sim"][data-activity-source="sim-generator"]{
   display:flex;
   justify-content:flex-start;
   align-items:center;
+  gap:var(--deacs-gap-normal);
   min-height:54px;
   margin-top:14px;
   padding-top:12px;
   border-top:1px solid rgba(255,255,255,.07);
 }
+
+.sectionActionRow[hidden]{display:none!important;}
 
 .sectionActionRow > button{
   min-width:220px;
@@ -2002,7 +2007,8 @@ nav button[data-tab="sim"][data-activity-source="sim-generator"]{
 #sim .simAddBytes{grid-column:3}
 #sim .simAddInterval{grid-column:4}
 #sim #simAdd{grid-column:5}
-#sim .simAddActions{grid-column:5;margin-top:0}
+#sim .simAddActions{grid-column:5;margin-top:0;flex-wrap:wrap}
+#sim #simImportFile{display:none!important}
 @media(max-width:1050px){
   #sim .simAdd{grid-template-columns:112px 72px minmax(320px,1fr) 112px}
   #sim .simAddBytes{grid-column:1/-1}
@@ -2080,6 +2086,8 @@ table > thead > tr > th > * {
 #sim .simTable col.simColByte{width:48px}
 #sim .simTable col.simColInterval{width:95px}
 #sim .simTable col.simColActive{width:58px}
+#sim .simTable col.simColMode{width:125px}
+#sim .simDataMode{width:100%;min-width:0}
 #sim .simTable col.simColSource{width:70px}
 #sim .simTable col.simColDrag{width:40px}
 #sim .simTable col.simColMenu{width:46px}
@@ -2297,11 +2305,47 @@ table > thead > tr > th > * {
 .dbcEmptyRow td{text-align:center!important;color:#78909b;font-family:system-ui,sans-serif;padding:24px 10px!important}
 
 /* CAN LIVE follows the active transmitting source without changing layout. */
-#canMode.sourceAura[data-live-source="simulator"]{color:#4ee0a1;border-color:#4ee0a1;background:rgba(78,224,161,.10);animation:deacsSimulatorButtonGlow 2.2s ease-in-out infinite}
-#canMode.sourceAura[data-live-source="generator"]{color:#6fc6ff;border-color:#43b2ff;background:rgba(67,178,255,.10);animation:deacsGeneratorButtonGlow 2.2s ease-in-out infinite}
-#canMode.sourceAura[data-live-source="log"]{color:#ffd09a;border-color:#f2a247;background:rgba(242,162,71,.12);animation:deacsLogReplayButtonGlow 2.2s ease-in-out infinite}
+#canMode.sourceAura[data-live-source="can"],#canMode.sourceAura[data-live-source="simulator"]{color:#4ee0a1;border-color:#4ee0a1;background:rgba(78,224,161,.10);box-shadow:0 0 12px rgba(78,224,161,.4);animation:deacsSimulatorButtonGlow 2.2s ease-in-out infinite}
+#canMode.sourceAura[data-live-source="generator"]{color:#6fc6ff;border-color:#43b2ff;background:rgba(67,178,255,.10);box-shadow:0 0 12px rgba(67,178,255,.4);animation:deacsGeneratorButtonGlow 2.2s ease-in-out infinite}
+#canMode.sourceAura[data-live-source="log"]{color:#ffd09a;border-color:#f2a247;background:rgba(242,162,71,.12);box-shadow:0 0 12px rgba(242,162,71,.4);animation:deacsLogReplayButtonGlow 2.2s ease-in-out infinite}
 #canMode.offline{animation:none!important}
+#canMode .canActiveSource[data-source="simulator"]{color:#4ee0a1}
+#canMode .canActiveSource[data-source="generator"]{color:#6fc6ff}
+#canMode .canActiveSource[data-source="log"]{color:#ffd09a}
 @media (prefers-reduced-motion:reduce){#canMode.sourceAura{animation:none!important}}
 
 .eventDetailGrid{display:grid;gap:8px}.eventDetailGrid code{color:#d9e7ee;white-space:normal;word-break:break-word}.eventDetailGrid b{color:#4ee0a1;font-size:1rem}
 .eventByteTableWrap{overflow-x:auto}.eventByteTable{min-width:720px}.eventByteTable th,.eventByteTable td{text-align:center!important}.eventByteCell{min-width:64px}.eventByteCell span,.eventByteCell small{display:block}.eventByteCell span{font-weight:800}.eventByteCell small{font-size:10px;opacity:.7}.eventByteCell.eventByteChanged{background:rgba(205,30,39,.76);color:#fff;box-shadow:inset 0 0 0 1px #ff7a80,0 0 8px rgba(255,55,65,.48)}
+
+/* Header help opens into the page, below the top edge. */
+.topbar [data-tooltip]::before{max-width:min(260px,calc(100vw - 36px));}
+.topbar [data-tooltip]:focus::before,.topbar [data-tooltip]:focus::after{opacity:1;visibility:visible;}
+nav .navLanguageGap{flex:1;min-width:18px}
+nav #languageToggle{margin-left:auto;flex-shrink:0;white-space:nowrap;position:sticky;right:0;box-shadow:-12px 0 0 #151d22}
+nav #languageToggle b{color:#4ee0a1}
+
+/* BMW E90 graphical speedometer tab */
+#bmwE90 .bmwE90Body{display:grid;grid-template-columns:minmax(390px,.9fr) minmax(430px,1.1fr);gap:24px;align-items:center;max-width:1450px;margin:0 auto}
+.bmwGaugePanel{display:grid;place-items:center;min-height:520px}.bmwGauge{position:relative;width:min(500px,90vw);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 50% 56%,#1a252b 0 25%,#10171b 62%,#26343c 63%,#0d1316 67%);box-shadow:inset 0 0 0 2px #41525b,0 16px 45px rgba(0,0,0,.42)}
+.bmwGaugeArc{position:absolute;inset:8%;border-radius:50%;border:11px solid transparent;border-top-color:#4ee0a1;border-left-color:#4ee0a1;transform:rotate(-45deg);opacity:.86}.bmwTicks{position:absolute;inset:0}
+.bmwTick{position:absolute;left:50%;top:50%;width:2px;height:12px;background:#8fa4af;transform-origin:1px 0}.bmwTick.major{height:20px;width:3px;background:#e8eef2}.bmwTickLabel{position:absolute;left:50%;top:50%;width:48px;margin-left:-24px;text-align:center;color:#cbd9df;font:700 14px ui-monospace,Consolas,monospace;transform-origin:24px 0}
+.bmwNeedle{position:absolute;left:50%;top:50%;width:41%;height:4px;border-radius:4px;background:linear-gradient(90deg,#ef6268 0 82%,transparent 82%);transform-origin:0 50%;transform:rotate(135deg);transition:transform .18s linear;filter:drop-shadow(0 0 5px rgba(239,98,104,.65));z-index:4}.bmwHub{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px;border-radius:50%;background:#d4dde1;border:7px solid #29373e;z-index:5}
+.bmwSpeedReadout{position:absolute;left:50%;top:67%;transform:translateX(-50%);display:flex;align-items:baseline;gap:8px;color:#e8eef2}.bmwSpeedReadout b{font:800 46px ui-monospace,Consolas,monospace;color:#4ee0a1}.bmwSpeedReadout span{color:#91a7b2}
+.bmwControlPanel{padding:18px;border-left:3px solid #2f80ed;border-radius:10px;background:rgba(47,128,237,.04)}.bmwControlPanel h2{margin:0 0 8px}.bmwSliderLabel{display:grid;grid-template-columns:auto 1fr 90px;gap:12px;align-items:center;margin:20px 0}.bmwSliderLabel input{width:100%;margin:0}.bmwSliderLabel output{text-align:right;color:#4ee0a1;font-weight:800}
+.bmwControlGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.bmwControlGrid label{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0;padding:9px 10px;background:#151d22;border:1px solid #2e3b42;border-radius:8px}.bmwControlGrid input{width:105px;margin:0;text-align:right}.bmwButtons{flex-wrap:wrap}.bmwButtons button{min-width:150px}.bmwFrameBox{display:grid;grid-template-columns:repeat(3,auto);gap:10px 18px;margin-top:16px;padding:13px;border:1px solid #2e3b42;border-radius:9px;background:#11181c}.bmwFrameBox code{grid-column:1/-1;color:#8fcfff;font-size:16px;letter-spacing:.04em}.bmwStatusLine{margin-top:10px;color:#9bb1bc}.bmwStatusLine.active{color:#4ee0a1}
+@media(max-width:980px){#bmwE90 .bmwE90Body{grid-template-columns:1fr}.bmwGaugePanel{min-height:430px}.bmwGauge{width:min(420px,88vw)}}@media(max-width:560px){.bmwControlGrid{grid-template-columns:1fr}.bmwSliderLabel{grid-template-columns:1fr}.bmwSliderLabel output{text-align:left}.bmwFrameBox{grid-template-columns:1fr}.bmwGaugePanel{min-height:350px}}
+
+
+/* BMW E90 race cockpit */
+#bmwE90 .bmwRaceBody{max-width:1450px;margin:auto}.bmwCockpit{display:grid;grid-template-columns:minmax(300px,1fr) 180px minmax(300px,1fr);align-items:center;gap:12px;padding:20px;border-radius:22px;background:linear-gradient(145deg,#172127,#080c0f);box-shadow:inset 0 0 0 2px #31414a,0 18px 50px #0008}.bmwDial{position:relative;width:min(420px,32vw);aspect-ratio:1;margin:auto;border-radius:50%;background:radial-gradient(circle,#182329 0 28%,#0a1013 60%,#34444d 61%,#0a0e10 66%);box-shadow:inset 0 0 25px #000}.bmwDialTicks{position:absolute;inset:0}.bmwRaceTick{position:absolute;left:50%;top:50%;width:2px;height:10px;background:#78909c;transform-origin:1px 0}.bmwRaceTick.major{width:3px;height:19px;background:#e5edf1}.bmwRaceLabel{position:absolute;left:50%;top:50%;width:44px;margin-left:-22px;text-align:center;color:#dce6ea;font:700 14px ui-monospace,Consolas,monospace}.bmwDialNeedle{position:absolute;left:50%;top:50%;width:41%;height:4px;border-radius:4px;background:linear-gradient(90deg,#ff4b51 0 84%,transparent 84%);transform-origin:0 50%;transform:rotate(135deg);transition:transform .06s linear;filter:drop-shadow(0 0 6px #f44);z-index:3}.bmwDialHub{position:absolute;left:50%;top:50%;width:28px;height:28px;margin:-14px;border-radius:50%;background:#dce6ea;border:7px solid #24333b;z-index:4}.bmwDialValue{position:absolute;left:50%;top:68%;transform:translateX(-50%);text-align:center;color:#91a6b0}.bmwDialValue b{display:block;color:#4ee0a1;font:800 38px ui-monospace,Consolas,monospace}.bmwDialValue span{font-size:12px}.rpmDial .bmwDialValue b{color:#62a8ff}.bmwRaceCenter{text-align:center}.bmwGearCaption{font-size:12px;letter-spacing:.25em;color:#71858f}.bmwGear{font:900 92px/1 ui-monospace,Consolas,monospace;color:#fff;text-shadow:0 0 16px #2f80ed}.bmwRaceState{margin-top:14px;color:#4ee0a1;font-weight:800;letter-spacing:.12em}.bmwShiftLight{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:12px}.bmwShiftLight i{height:10px;border-radius:50%;background:#243139}.bmwShiftLight i.on:nth-child(-n+4){background:#43d17d;box-shadow:0 0 8px #43d17d}.bmwShiftLight i.on:nth-child(n+5):nth-child(-n+6){background:#ffb72f;box-shadow:0 0 8px #ffb72f}.bmwShiftLight i.on:nth-child(n+7){background:#ff424c;box-shadow:0 0 8px #ff424c}.bmwRaceControls{margin-top:18px}.bmwStatusLine.shifting{color:#ffb72f}.bmwStatusLine.active{color:#4ee0a1}@media(max-width:1000px){.bmwCockpit{grid-template-columns:1fr 120px 1fr}.bmwDial{width:min(360px,38vw)}}@media(max-width:700px){.bmwCockpit{grid-template-columns:1fr 1fr}.bmwRaceCenter{grid-column:1/-1;grid-row:2}.bmwDial{width:43vw}.bmwGear{font-size:60px}}
+
+.bmwIndicatorPanel{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin:13px 0}.bmwLamp{min-height:52px;border:1px solid #344750!important;background:#111a1f!important;color:#60737d!important;border-radius:9px!important}.bmwLamp span{display:block;font-size:11px;margin-top:3px}.bmwLamp.on{color:#4ee0a1!important;border-color:#4ee0a1!important;box-shadow:inset 0 0 15px #31d78622,0 0 8px #31d78655}.bmwLamp[data-lamp="high"].on{color:#52a7ff!important;border-color:#52a7ff!important}.bmwLamp[data-lamp="brake"].on,.bmwLamp[data-lamp="hazard"].on{color:#ff555c!important;border-color:#ff555c!important}.bmwLamp.auto.on{color:#ffb72f!important;border-color:#ffb72f!important}@media(max-width:900px){.bmwIndicatorPanel{grid-template-columns:repeat(4,1fr)}}.bmwAuxPanel{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}.bmwAuxCard{padding:10px;border:1px solid #30414a;border-radius:9px;background:#10171b}.bmwAuxCard label,.bmwAuxCard b{display:block}.bmwAuxCard input{width:100%;margin:7px 0}.bmwAuxCard b{color:#4ee0a1}@media(max-width:900px){.bmwAuxPanel{grid-template-columns:1fr 1fr}}.bmwUnsupportedPanel{padding:12px;border:1px solid #654f26;border-radius:9px;background:#201a10;margin:10px 0}.bmwUnsupportedGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}.bmwUnsupportedGrid span{padding:6px;background:#15191b;border-radius:6px}.bmwUnsupportedPanel small{color:#d5b66b}@media(max-width:900px){.bmwUnsupportedGrid{grid-template-columns:1fr 1fr}}.bmwExtraControls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:10px 0}.bmwExtraControls label{padding:8px;background:#11181c;border:1px solid #30414a;border-radius:7px}.bmwExtraControls input[type=number]{width:80px}@media(max-width:900px){.bmwExtraControls{grid-template-columns:1fr 1fr}}.bmwUnsupportedPanel{padding:5px 7px!important;margin:5px 0 8px!important;border-color:#30414a!important;background:#0f1518!important;font-size:10px!important}.bmwUnsupportedPanel>strong{font-size:10px;color:#78909c}.bmwExtraControls{display:flex!important;flex-wrap:wrap!important;gap:3px!important;margin:3px 0!important}.bmwExtraControls label{padding:2px 5px!important;border-radius:4px!important;font-size:9px!important;line-height:16px!important;white-space:nowrap}.bmwExtraControls input[type=number]{width:48px!important;height:18px!important;font-size:9px!important;padding:1px 2px!important}.bmwExtraControls input[type=checkbox]{width:11px!important;height:11px!important;margin:0 2px 0 0!important}.bmwExtraControls code{font-size:8px}.bmwUnsupportedGrid{display:flex!important;flex-wrap:wrap!important;gap:2px!important;margin:2px 0!important}.bmwUnsupportedGrid span{padding:1px 4px!important;font-size:8px!important;background:#13191c!important}.bmwUnsupportedGrid code{font-size:8px!important;color:#71858f!important}#bmwE90 .bmwStatusLine{display:none!important}#bmwE90 .bmwCockpit>.bmwIndicatorPanel{grid-column:1/-1;display:flex;justify-content:center;align-items:center;gap:12px;margin:4px 0 -4px;padding:7px 12px;border-top:1px solid #27363e;background:transparent}#bmwE90 .bmwCockpit>.bmwIndicatorPanel .bmwLamp{min-width:58px!important;min-height:34px!important;padding:3px 7px!important;border-radius:18px!important;font-size:13px!important}#bmwE90 .bmwCockpit>.bmwIndicatorPanel .bmwLamp span{font-size:8px!important;margin-top:1px!important;white-space:nowrap}#bmwE90 .bmwMiniGauges{display:flex!important;justify-content:center;gap:18px;margin:10px auto!important;max-width:720px}#bmwE90 .bmwMiniGauge{width:145px;padding:5px 7px!important;text-align:center;background:#0d1418!important;border:1px solid #30414a!important;border-radius:10px!important}#bmwE90 .bmwMiniTitle{display:block;font-size:10px;color:#a9bac2;margin-bottom:1px}#bmwE90 .bmwMiniFace{position:relative;width:102px;height:55px;margin:auto;overflow:hidden;border-radius:54px 54px 6px 6px;background:radial-gradient(circle at 50% 100%,#1b272d 0 16%,#0b1013 17% 62%,#2b3a42 64%,#0b1013 68%);border-bottom:1px solid #283840}#bmwE90 .bmwMiniNeedle{position:absolute;left:50%;bottom:5px;width:42px;height:2px;background:#ff5359;transform-origin:0 50%;transform:rotate(200deg);filter:drop-shadow(0 0 3px #f44)}#bmwE90 .bmwMiniHub{position:absolute;left:50%;bottom:1px;width:9px;height:9px;margin-left:-4px;border-radius:50%;background:#dce6ea;border:2px solid #34444d}#bmwE90 .bmwMiniMin,#bmwE90 .bmwMiniMax{position:absolute;bottom:5px;font-size:8px;color:#78909c}#bmwE90 .bmwMiniMin{left:6px}#bmwE90 .bmwMiniMax{right:6px}#bmwE90 .bmwMiniGauge>b{display:block;margin-top:2px;color:#4ee0a1;font:700 10px ui-monospace,Consolas,monospace}@media(max-width:750px){#bmwE90 .bmwMiniGauges{flex-wrap:wrap}}#bmwE90 .bmwDbcStatusPanel{padding:4px 7px!important;margin:5px 0!important;background:#0c1317!important;border:1px solid #26363e!important}#bmwE90 .bmwDbcStatusRow{display:flex;flex-wrap:wrap;justify-content:center;gap:5px 11px;align-items:center}#bmwE90 .bmwDbcLed,#bmwE90 .bmwDbcReadout{font-size:9px;color:#8297a1;white-space:nowrap}#bmwE90 .bmwDbcLed i{display:inline-block;width:7px;height:7px;margin-right:4px;border-radius:50%;background:#24343c;box-shadow:inset 0 0 2px #000}#bmwE90 .bmwDbcLed.on i{background:#4ee0a1;box-shadow:0 0 6px #4ee0a1}#bmwE90 .bmwDbcReadout b{color:#a9c8d8;font-weight:700}#bmwE90 .bmwCockpit>.bmwIndicatorPanel{gap:18px!important;padding:12px 16px!important}#bmwE90 .bmwCockpit>.bmwIndicatorPanel .bmwLamp{min-width:92px!important;min-height:52px!important;padding:7px 12px!important;border-radius:28px!important;font-size:20px!important;border-width:2px!important}#bmwE90 .bmwCockpit>.bmwIndicatorPanel .bmwLamp span{font-size:11px!important;margin-top:3px!important;font-weight:700}#bmwE90 .bmwCockpit>.bmwIndicatorPanel .bmwLamp.on{box-shadow:inset 0 0 18px currentColor,0 0 15px currentColor!important}#bmwE90 .bmwCockpit>.bmwIndicatorPanel{gap:24px!important;padding:18px 20px!important}#bmwE90 .bmwCockpit>.bmwIndicatorPanel .bmwLamp{min-width:132px!important;min-height:72px!important;padding:10px 16px!important;border-radius:38px!important;font-size:30px!important;border-width:3px!important}#bmwE90 .bmwCockpit>.bmwIndicatorPanel .bmwLamp span{font-size:14px!important;margin-top:4px!important;font-weight:800}#bmwE90 .bmwCockpit>.bmwIndicatorPanel .bmwLamp.on{box-shadow:inset 0 0 24px currentColor,0 0 22px currentColor!important}
+
+#bmwE90 .bmwLampTests{display:flex;flex-wrap:wrap;gap:8px;padding:10px}#bmwE90 .bmwTestLamp.on{color:#ffcf62;border-color:#ffcf62;background:#49391c}#bmwE90 .bmwCockpit>.bmwIndicatorPanel{flex-wrap:wrap}#bmwE90 .bmwCockpit>.bmwIndicatorPanel .bmwLamp{min-width:90px!important}#bmwLampTests+ .toolbar{padding:10px}
+#bmwE90 input[type=number]{appearance:textfield;-moz-appearance:textfield}
+#bmwE90 input[type=number]::-webkit-inner-spin-button,#bmwE90 input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+#bmwE90 .bmwControlGrid{display:flex;flex-wrap:wrap;gap:6px}
+#bmwE90 .bmwControlGrid label{flex:0 0 auto;justify-content:flex-start;gap:6px;padding:4px 7px;font-size:12px;border-radius:6px;max-width:100%}
+#bmwE90 .bmwControlGrid input{width:64px;height:28px;padding:3px 6px;font-size:12px;border-radius:5px}
+#bmwE90 .bmwRaceCenter .bmwMiniGauges{position:relative;left:50%;transform:translateX(-50%);width:260px;max-width:none;gap:10px;margin:12px 0 0!important;flex-wrap:nowrap!important}
+#bmwE90 .bmwRaceCenter .bmwMiniGauge{width:125px;flex:0 0 125px}
