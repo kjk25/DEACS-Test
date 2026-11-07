@@ -7,7 +7,7 @@
 
 namespace Config {
 constexpr char FW_NAME[] = "DEACS";
-constexpr char FW_VERSION[] = "0.13.63-TEST";
+constexpr char FW_VERSION[] = "0.13.64-TEST";
 constexpr uint32_t SERIAL_BAUD = 921600;
 constexpr gpio_num_t CAN_TX_PIN = GPIO_NUM_17;
 constexpr gpio_num_t CAN_RX_PIN = GPIO_NUM_16;

@@ -1,10 +1,14 @@
-# DEACS V0.13.63-TEST
+# DEACS V0.13.64-TEST
 
 [Deutsch](README.md) | **English**
 
 This test repository now follows the current DEACS feature set. It targets the **ESP32-S3 N16R8**, with **16 MB flash and 8 MB PSRAM**. The new firmware images are **not compatible with the ESP32-WROOM** used by the previous test release.
 
 DEACS is a browser-based classic CAN monitor, decoder, logger, transmitter and simulator. The interface supports **German, English and Japanese**, including language changes during a running BMW demo.
+
+Project version: **0.13.64-TEST**. This documentation update keeps the complete firmware download at **0.13.63-TEST**; the standalone USB page is generated from the current sources.
+
+[Main repository](https://github.com/kjk25/DEACS) ? [Test repository](https://github.com/kjk25/DEACS-Test). Both target ESP32-S3 N16R8 / COM9.
 
 ## Hardware and configuration
 
@@ -21,7 +25,7 @@ An external 3.3 V compatible CAN transceiver is required. GPIO27 is reserved for
 
 ## Download and upload
 
-- [Standalone USB interface](release/DEACS_V0_13_63_TEST_USB.html)
+- [Standalone USB interface](release/DEACS_V0_13_64_TEST_USB.html)
 - [Complete webflash image](release/DEACS_V0_13_63_TEST_webflash.bin)
 - [Test release notes](release/DEACS_V0_13_63_TEST_NOTES.md)
 

@@ -1,4 +1,4 @@
-# DEACS V0.13.63-TEST
+# DEACS V0.13.64-TEST
 
 **Deutsch** | [English](README_EN.md)
 
@@ -9,11 +9,21 @@ Die Oberfläche unterstützt Deutsch, Englisch und Japanisch. Die Auswahl **DE /
 **Der Etwas Andere CAN Sniffer** ist ein browserbasiertes CAN-Werkzeug für den ESP32. Es empfängt, analysiert, protokolliert, simuliert und sendet klassische CAN-Frames über den internen TWAI-Controller des ESP32.
 
 
-![DEACS V0.13.63-TEST – CAN-Monitor](docs/images/deacs-monitor-v0.13.32.png)
+![DEACS – CAN-Monitor](docs/images/deacs-monitor-v0.13.32.png)
 
-![DEACS V0.13.63-TEST – CAN-Übersicht](docs/images/deacs-overview-v0.13.32.png)
+![DEACS – CAN-Übersicht](docs/images/deacs-overview-v0.13.32.png)
 
-![DEACS V0.13.63-TEST – Browser-Logging und Import](docs/images/deacs-logging-v0.13.32.png)
+![DEACS – Browser-Logging und Import](docs/images/deacs-logging-v0.13.32.png)
+
+## Aktueller Stand
+
+Projektstand: **0.13.64-TEST**. Dieses Update aktualisiert die Dokumentation; der vollst?ndige Firmware-Download bleibt bei **0.13.63-TEST**. Die USB-Oberfl?che wird aus dem aktuellen Projektstand erzeugt.
+
+Zielhardware: **ESP32-S3 N16R8**, 16 MB Flash und 8 MB PSRAM. Upload und serieller Monitor verwenden **COM9**, CAN TX/RX **GPIO17/GPIO16**. GPIO21 ist der unbeschaltete Dummy-TX f?r den Mith?rmodus.
+
+[Hauptprojekt](https://github.com/kjk25/DEACS) ? [Testprojekt](https://github.com/kjk25/DEACS-Test). Die Testversion ist f?r denselben S3-Aufbau vorgesehen.
+
+Die Bildschirmfotos zeigen einen ?lteren Oberfl?chenstand.
 
 ## Funktionen
 
@@ -133,7 +143,7 @@ Das Gesamt-BIN enthält Bootloader, Partitionstabelle, Firmware und die vollstä
 
 Ab **0.13.41-TEST** verwendet DEACS die serielle Schnittstelle direkt im Browser. Ein externes Programm oder lokaler Server ist nicht erforderlich.
 
-1. Die vollständige [USB-Oberfläche herunterladen](release/DEACS_V0_13_63_TEST_USB.html), oder in der WLAN-Oberfläche **USB-Oberfläche speichern** wählen.
+1. Die vollständige [USB-Oberfläche herunterladen](release/DEACS_V0_13_64_TEST_USB.html), oder in der WLAN-Oberfläche **USB-Oberfläche speichern** wählen.
 2. Die HTML-Datei lokal in **Chrome oder Edge** öffnen.
 3. ESP32 anschließen, **USB verbinden** wählen und den DEACS-Port im Browser freigeben.
 
